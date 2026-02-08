@@ -4,6 +4,22 @@ import { join } from 'path'
 import { constants } from 'fs'
 
 const HISTORY_FILE = join(app.getPath('userData'), 'directory-history.json')
+const SETTINGS_FILE = join(app.getPath('userData'), 'settings.json')
+
+const DEFAULT_SETTINGS = { hotkey: 'CommandOrControl+Shift+Y' }
+
+async function loadSettings() {
+  try {
+    const data = await readFile(SETTINGS_FILE, 'utf-8')
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(data) }
+  } catch {
+    return { ...DEFAULT_SETTINGS }
+  }
+}
+
+async function saveSettings(settings) {
+  await writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
+}
 
 async function loadHistory() {
   try {
@@ -56,6 +72,8 @@ async function buildTree(dirPath) {
 
   return items
 }
+
+export { loadSettings }
 
 export function registerIpcHandlers() {
   ipcMain.handle('dialog:openDirectory', async () => {
@@ -138,6 +156,15 @@ export function registerIpcHandlers() {
     } catch (err) {
       throw new Error(`Failed to delete directory: ${err.message}`)
     }
+  })
+
+  ipcMain.handle('settings:get', async () => {
+    return await loadSettings()
+  })
+
+  ipcMain.handle('settings:set', async (_event, settings) => {
+    await saveSettings(settings)
+    return settings
   })
 
   ipcMain.handle('fs:checkDirectoryEmpty', async (_event, dirPath) => {

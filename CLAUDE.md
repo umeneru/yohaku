@@ -157,6 +157,26 @@ App.jsx（ルート）
 - ファイル/ディレクトリ: 上記 + Rename, Delete
 - ファイル削除時は確認、空でないディレクトリ削除時は追加警告
 
+### CI/CD（GitHub Actions）
+
+- ワークフロー: `.github/workflows/release.yml`
+- **トリガー:** `v*` タグのプッシュ（例: `v1.0.3`）
+- **ビルド対象:** Windows (.exe) on `windows-latest`、Linux (.AppImage) on `ubuntu-latest`
+- マトリクスで2ジョブ並列実行（`fail-fast: false`）
+- `electron-builder` は `--publish never` で自動パブリッシュを無効化
+- リリース作成は `softprops/action-gh-release@v2` が担当（`permissions: contents: write` が必要）
+- Node.js 22 を使用（`node-abi` が `>=22.12.0` を要求するため）
+
+**リリース手順：**
+```bash
+# 1. package.json の version を更新
+# 2. コミット & タグ作成 & プッシュ
+git add package.json
+git commit -m "v1.0.x"
+git tag v1.0.x
+git push origin main --tags
+```
+
 ### 実装上の重要な注意点
 
 1. **window.prompt()は使用不可** - Electronでは動作しないため `InputDialog` コンポーネントを使用

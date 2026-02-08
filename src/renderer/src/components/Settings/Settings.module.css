@@ -1,0 +1,93 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.dialog {
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  min-width: 340px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #0078d4;
+}
+
+.hint {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.buttonPrimary {
+  padding: 5px 14px;
+  border: 1px solid #0078d4;
+  background: #0078d4;
+  color: #fff;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.buttonPrimary:hover {
+  opacity: 0.85;
+}
+
+.button {
+  padding: 5px 14px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.button:hover {
+  opacity: 0.85;
+}
