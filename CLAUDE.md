@@ -101,6 +101,7 @@ useEffect(() => {
 - `fs:rename` - ファイル/ディレクトリのリネーム
 - `fs:deleteFile` / `fs:deleteDirectory` - 削除
 - `fs:checkDirectoryEmpty` - ディレクトリ削除前の空チェック
+- `fs:searchInDirectory` - ディレクトリ内キーワード検索（再帰的、大文字小文字区別なし、最大500件）
 
 **ダイアログ操作：**
 - `dialog:openDirectory` - システムディレクトリ選択ダイアログ
@@ -114,6 +115,7 @@ useEffect(() => {
 App.jsx（ルート）
 ├─ FileExplorer（左サイドバー）
 │  ├─ TreeNode（再帰的ツリー）
+│  ├─ SearchPanel（ディレクトリ内キーワード検索）
 │  ├─ ContextMenu（右クリックメニュー）
 │  ├─ InputDialog（新規作成/リネーム用モーダル）
 │  └─ DirectoryPicker（ディレクトリ履歴ポップアップ）
@@ -176,6 +178,16 @@ git commit -m "v1.0.x"
 git tag v1.0.x
 git push origin main --tags
 ```
+
+### ディレクトリ内キーワード検索
+
+- サイドバー下部の虫眼鏡アイコンで検索モードに切替（ツリー表示と排他）
+- 検索モード時はアイコンがフォルダアイコンに変わり、押すとツリー表示に戻る
+- `SearchPanel.jsx` で300msデバウンス付き検索入力、結果クリックでファイルを開く
+- メインプロセスの `searchInDirectory` がディレクトリを再帰走査しテキストファイルのみ検索
+- 隠しファイル（`.`始まり）・`node_modules`・バイナリファイルはスキップ
+- 結果上限500件、ヒット箇所は黄色ハイライト表示
+- Escapeキーで検索パネルを閉じる
 
 ### 実装上の重要な注意点
 
