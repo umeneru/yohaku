@@ -1,6 +1,6 @@
 # Yohaku.
 
-シンプルなテキストエディタ。Electron + React で構築。
+シンプルなテキストエディタ。
 
 ## 特徴
 
@@ -30,6 +30,24 @@ npm run dev
 npm run build          # プロダクションビルド
 npm run dist:win       # Windows用配布パッケージ作成
 ```
+
+## ダウンロード
+
+[GitHub Releases](../../releases) から Windows (.exe) / Linux (.AppImage) をダウンロードできます。
+
+## リリース手順
+
+```bash
+# 1. package.json の version を更新
+# 2. コミット
+git add package.json
+git commit -m "v1.0.1"
+# 3. タグを作成してプッシュ
+git tag v1.0.1
+git push origin main --tags
+```
+
+タグのプッシュで GitHub Actions が自動的にビルド・リリースを作成します。
 
 ## 技術スタック
 

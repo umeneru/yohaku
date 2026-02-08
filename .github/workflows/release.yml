@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            build-command: npm run dist:win
+            artifact-pattern: 'dist/*.exe'
+          - os: ubuntu-latest
+            build-command: npm run dist
+            artifact-pattern: 'dist/*.AppImage'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: ${{ matrix.build-command }}
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact-pattern }}
+          draft: false
+          generate_release_notes: true

@@ -9,6 +9,7 @@ linux:
   target:
     - AppImage
   category: Utility
+  artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 win:
   target:
     - nsis
