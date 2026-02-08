@@ -4,6 +4,7 @@ import TreeNode from './TreeNode'
 import ContextMenu from './ContextMenu'
 import InputDialog from './InputDialog'
 import DirectoryPicker from './DirectoryPicker'
+import SearchPanel from './SearchPanel'
 import Settings from '../Settings/Settings'
 import styles from './FileExplorer.module.css'
 import { join as pathJoin } from './pathUtil'
@@ -15,6 +16,7 @@ function FileExplorer() {
   const [inputDialog, setInputDialog] = useState(null)
   const [showPicker, setShowPicker] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
   const [history, setHistory] = useState([])
 
   useEffect(() => {
@@ -211,17 +213,21 @@ function FileExplorer() {
 
   return (
     <div className={styles.explorer} onContextMenu={handleContextMenu}>
-      <div className={styles.treeContainer}>
-        {tree.length === 0 ? (
-          <div className={styles.empty}>
-            {rootPath ? 'Empty directory' : 'No directory selected'}
-          </div>
-        ) : (
-          tree.map((node) => (
-            <TreeNode key={node.path} node={node} depth={0} />
-          ))
-        )}
-      </div>
+      {showSearch ? (
+        <SearchPanel onClose={() => setShowSearch(false)} />
+      ) : (
+        <div className={styles.treeContainer}>
+          {tree.length === 0 ? (
+            <div className={styles.empty}>
+              {rootPath ? 'Empty directory' : 'No directory selected'}
+            </div>
+          ) : (
+            tree.map((node) => (
+              <TreeNode key={node.path} node={node} depth={0} />
+            ))
+          )}
+        </div>
+      )}
       <div className={styles.bottomBar}>
         <div className={styles.directoryBar} onClick={() => setShowPicker(true)}>
           <svg className={styles.dirIcon} width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -231,6 +237,21 @@ function FileExplorer() {
             {getDirectoryName()}
           </span>
         </div>
+        <button
+          className={styles.searchButton}
+          onClick={() => setShowSearch(!showSearch)}
+          title={showSearch ? 'Back to file tree' : 'Search in files'}
+        >
+          {showSearch ? (
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zM2.5 3a.5.5 0 0 0-.5.5V6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5zM14 7H2v5.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V7z"/>
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          )}
+        </button>
         <button
           className={styles.settingsButton}
           onClick={() => setShowSettings(true)}

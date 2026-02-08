@@ -72,6 +72,24 @@
   white-space: nowrap;
 }
 
+.searchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-left: 1px solid #d0d0d0;
+}
+
+.searchButton:hover {
+  background: #dcdcdc;
+  color: #333;
+}
+
 .settingsButton {
   display: flex;
   align-items: center;

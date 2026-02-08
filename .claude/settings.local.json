@@ -18,7 +18,25 @@
       "Bash(wine:*)",
       "Bash(WINEPREFIX=~/.wine wineboot:*)",
       "Bash(ls:*)",
-      "Bash(timeout 10 npm run dev)"
+      "Bash(timeout 10 npm run dev)",
+      "Bash(git -C /home/ukimm/workspace/dev/yohaku remote -v)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh run list:*)",
+      "Bash(sudo mkdir:*)",
+      "Bash(wget:*)",
+      "Bash(sudo tee:*)",
+      "Bash(sudo apt update:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh workflow list:*)",
+      "Bash(git tag:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh release view:*)",
+      "Bash(gh release delete:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

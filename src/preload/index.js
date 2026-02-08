@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteFile: (filePath) => ipcRenderer.invoke('fs:deleteFile', filePath),
   deleteDirectory: (dirPath) => ipcRenderer.invoke('fs:deleteDirectory', dirPath),
   checkDirectoryEmpty: (dirPath) => ipcRenderer.invoke('fs:checkDirectoryEmpty', dirPath),
+  searchInDirectory: (rootPath, keyword) => ipcRenderer.invoke('fs:searchInDirectory', rootPath, keyword),
   getDirectoryHistory: () => ipcRenderer.invoke('history:get'),
   addToDirectoryHistory: (dirPath) => ipcRenderer.invoke('history:add', dirPath),
   getSettings: () => ipcRenderer.invoke('settings:get'),

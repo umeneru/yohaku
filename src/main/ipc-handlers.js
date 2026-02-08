@@ -73,6 +73,70 @@ async function buildTree(dirPath) {
   return items
 }
 
+const BINARY_EXTENSIONS = new Set([
+  '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp', '.svg',
+  '.mp3', '.mp4', '.wav', '.avi', '.mov', '.mkv', '.flac', '.ogg',
+  '.zip', '.tar', '.gz', '.rar', '.7z', '.bz2',
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+  '.exe', '.dll', '.so', '.dylib', '.bin', '.dat',
+  '.ttf', '.otf', '.woff', '.woff2', '.eot',
+  '.sqlite', '.db'
+])
+
+const MAX_SEARCH_RESULTS = 500
+
+async function searchInDirectory(rootPath, keyword) {
+  const results = []
+  const lowerKeyword = keyword.toLowerCase()
+
+  async function walkDir(dirPath) {
+    if (results.length >= MAX_SEARCH_RESULTS) return
+    let entries
+    try {
+      entries = await readdir(dirPath, { withFileTypes: true })
+    } catch {
+      return
+    }
+
+    for (const entry of entries) {
+      if (results.length >= MAX_SEARCH_RESULTS) return
+      if (entry.name.startsWith('.')) continue
+      if (entry.name === 'node_modules') continue
+
+      const fullPath = join(dirPath, entry.name)
+
+      if (entry.isDirectory()) {
+        await walkDir(fullPath)
+      } else {
+        const ext = entry.name.includes('.') ? '.' + entry.name.split('.').pop().toLowerCase() : ''
+        if (BINARY_EXTENSIONS.has(ext)) continue
+
+        try {
+          const content = await readFile(fullPath, 'utf-8')
+          const lines = content.split('\n')
+          for (let i = 0; i < lines.length; i++) {
+            if (results.length >= MAX_SEARCH_RESULTS) break
+            const col = lines[i].toLowerCase().indexOf(lowerKeyword)
+            if (col !== -1) {
+              results.push({
+                filePath: fullPath,
+                line: lines[i],
+                lineNumber: i + 1,
+                column: col + 1
+              })
+            }
+          }
+        } catch {
+          // skip files that can't be read as utf-8
+        }
+      }
+    }
+  }
+
+  await walkDir(rootPath)
+  return results
+}
+
 export { loadSettings }
 
 export function registerIpcHandlers() {
@@ -165,6 +229,14 @@ export function registerIpcHandlers() {
   ipcMain.handle('settings:set', async (_event, settings) => {
     await saveSettings(settings)
     return settings
+  })
+
+  ipcMain.handle('fs:searchInDirectory', async (_event, rootPath, keyword) => {
+    try {
+      return await searchInDirectory(rootPath, keyword)
+    } catch (err) {
+      throw new Error(`Search failed: ${err.message}`)
+    }
   })
 
   ipcMain.handle('fs:checkDirectoryEmpty', async (_event, dirPath) => {
