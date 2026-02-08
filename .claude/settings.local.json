@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npm --version:*)",
+      "Bash(npx:*)",
+      "WebSearch",
+      "Bash(npm install:*)",
+      "Bash(npm search:*)",
+      "Bash(claude config set:*)",
+      "Bash(npm run dist:*)",
+      "Bash(dpkg -l:*)",
+      "Bash(sudo dpkg:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(npm run dist:win:*)",
+      "Bash(WINEARCH=win64 wineboot:*)",
+      "Bash(wine:*)",
+      "Bash(WINEPREFIX=~/.wine wineboot:*)",
+      "Bash(ls:*)",
+      "Bash(timeout 10 npm run dev)"
+    ]
+  }
+}

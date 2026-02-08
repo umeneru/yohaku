@@ -1,0 +1,51 @@
+.node {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.node:hover {
+  background: #e8e8e8;
+}
+
+.active {
+  background: #d4e4f7;
+}
+
+.active:hover {
+  background: #c4d8ef;
+}
+
+.icon {
+  margin-right: 4px;
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.arrow {
+  margin-right: 2px;
+  font-size: 10px;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  transition: transform 0.1s;
+}
+
+.arrowExpanded {
+  transform: rotate(90deg);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.children {
+  /* container for child nodes */
+}

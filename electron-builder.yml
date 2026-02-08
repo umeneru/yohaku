@@ -1,0 +1,23 @@
+appId: com.yohaku.app
+productName: Yohaku.
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+linux:
+  target:
+    - AppImage
+  category: Utility
+win:
+  target:
+    - nsis
+    - portable
+  artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+mac:
+  target:
+    - dmg

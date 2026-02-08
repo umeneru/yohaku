@@ -1,0 +1,11 @@
+.resizer {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.resizer:hover {
+  background: #0078d4;
+}
