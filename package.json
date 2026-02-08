@@ -1,6 +1,6 @@
 {
   "name": "yohaku",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Yohaku. - A simple text editor built with React and Electron",
   "main": "./out/main/index.js",
   "scripts": {
