@@ -38,8 +38,36 @@
   background: #e8e8e8;
 }
 
-.textarea {
+.highlightContainer {
+  position: relative;
   flex: 1;
+  overflow: hidden;
+}
+
+.backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0px 16px 16px 16px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  tab-size: 4;
+  color: transparent;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: auto;
+  pointer-events: none;
+}
+
+.textarea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   padding: 0px 16px 16px 16px;
   border: none;
   outline: none;
@@ -49,6 +77,22 @@
   line-height: 1.6;
   tab-size: 4;
   background: #fff;
+}
+
+.textareaTransparent {
+  background: transparent;
+}
+
+.highlight {
+  background-color: rgba(255, 255, 0, 0.4);
+  color: transparent;
+  border-radius: 2px;
+}
+
+.highlightActive {
+  background-color: rgba(255, 165, 0, 0.6);
+  color: transparent;
+  border-radius: 2px;
 }
 
 .placeholder {

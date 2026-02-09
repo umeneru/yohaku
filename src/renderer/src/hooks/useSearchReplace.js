@@ -1,10 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 export function useSearchReplace(content, dispatch, textareaRef) {
   const [searchTerm, setSearchTerm] = useState('')
   const [replaceTerm, setReplaceTerm] = useState('')
   const [matchIndex, setMatchIndex] = useState(-1)
-  const [matchCount, setMatchCount] = useState(0)
 
   const findMatches = useCallback((text, term) => {
     if (!term) return []
@@ -17,9 +16,9 @@ export function useSearchReplace(content, dispatch, textareaRef) {
     return matches
   }, [])
 
+  const matches = useMemo(() => findMatches(content, searchTerm), [content, searchTerm, findMatches])
+
   const findNext = useCallback(() => {
-    const matches = findMatches(content, searchTerm)
-    setMatchCount(matches.length)
     if (matches.length === 0) {
       setMatchIndex(-1)
       return
@@ -29,13 +28,13 @@ export function useSearchReplace(content, dispatch, textareaRef) {
 
     const textarea = textareaRef.current
     if (textarea) {
+      const pos = matches[nextIndex]
       textarea.focus()
-      textarea.setSelectionRange(matches[nextIndex], matches[nextIndex] + searchTerm.length)
+      textarea.setSelectionRange(pos, pos + searchTerm.length)
     }
-  }, [content, searchTerm, matchIndex, findMatches, textareaRef])
+  }, [matches, searchTerm, matchIndex, textareaRef])
 
   const replaceOne = useCallback(() => {
-    const matches = findMatches(content, searchTerm)
     if (matches.length === 0 || matchIndex < 0) return
 
     const pos = matches[matchIndex]
@@ -43,23 +42,22 @@ export function useSearchReplace(content, dispatch, textareaRef) {
     dispatch({ type: 'UPDATE_CONTENT', content: newContent })
 
     const newMatches = findMatches(newContent, searchTerm)
-    setMatchCount(newMatches.length)
     const nextIdx = matchIndex >= newMatches.length ? 0 : matchIndex
     setMatchIndex(newMatches.length > 0 ? nextIdx : -1)
-  }, [content, searchTerm, replaceTerm, matchIndex, findMatches, dispatch])
+  }, [content, searchTerm, replaceTerm, matchIndex, matches, findMatches, dispatch])
 
   const replaceAll = useCallback(() => {
     if (!searchTerm) return
     const newContent = content.split(searchTerm).join(replaceTerm)
     dispatch({ type: 'UPDATE_CONTENT', content: newContent })
-    setMatchCount(0)
     setMatchIndex(-1)
   }, [content, searchTerm, replaceTerm, dispatch])
 
   return {
     searchTerm, setSearchTerm,
     replaceTerm, setReplaceTerm,
-    matchIndex, matchCount,
+    matchIndex, matchCount: matches.length,
+    matches,
     findNext, replaceOne, replaceAll
   }
 }

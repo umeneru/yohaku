@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react'
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react'
 import { useAppState, useAppDispatch } from '../../context/AppContext'
 import { useSearchReplace } from '../../hooks/useSearchReplace'
 import SearchBar from './SearchBar'
@@ -8,12 +8,15 @@ function TextEditor() {
   const { currentFile, content, isDirty } = useAppState()
   const dispatch = useAppDispatch()
   const textareaRef = useRef(null)
+  const backdropRef = useRef(null)
+  const activeMarkRef = useRef(null)
   const [showSearch, setShowSearch] = useState(false)
 
   const {
     searchTerm, setSearchTerm,
     replaceTerm, setReplaceTerm,
     matchIndex, matchCount,
+    matches,
     findNext, replaceOne, replaceAll
   } = useSearchReplace(content, dispatch, textareaRef)
 
@@ -58,6 +61,66 @@ function TextEditor() {
     dispatch({ type: 'UPDATE_CONTENT', content: e.target.value })
   }
 
+  const syncScroll = useCallback(() => {
+    if (textareaRef.current && backdropRef.current) {
+      backdropRef.current.scrollTop = textareaRef.current.scrollTop
+      backdropRef.current.scrollLeft = textareaRef.current.scrollLeft
+    }
+  }, [])
+
+  const scrollToActiveMark = useCallback(() => {
+    requestAnimationFrame(() => {
+      const mark = activeMarkRef.current
+      const backdrop = backdropRef.current
+      const textarea = textareaRef.current
+      if (mark && backdrop && textarea) {
+        const markTop = mark.offsetTop
+        const markHeight = mark.offsetHeight
+        const visibleHeight = backdrop.clientHeight
+        backdrop.scrollTop = markTop - visibleHeight / 2 + markHeight / 2
+        textarea.scrollTop = backdrop.scrollTop
+      }
+    })
+  }, [])
+
+  const handleFindNext = useCallback(() => {
+    findNext()
+    scrollToActiveMark()
+  }, [findNext, scrollToActiveMark])
+
+  const highlightedContent = useMemo(() => {
+    if (!searchTerm || matches.length === 0) {
+      return null
+    }
+
+    const parts = []
+    let lastEnd = 0
+    const termLen = searchTerm.length
+
+    for (let i = 0; i < matches.length; i++) {
+      const start = matches[i]
+      if (start > lastEnd) {
+        parts.push(content.substring(lastEnd, start))
+      }
+      const isActive = i === matchIndex
+      const cls = isActive ? styles.highlightActive : styles.highlight
+      parts.push(
+        <mark key={i} className={cls} ref={isActive ? activeMarkRef : undefined}>
+          {content.substring(start, start + termLen)}
+        </mark>
+      )
+      lastEnd = start + termLen
+    }
+
+    if (lastEnd < content.length) {
+      parts.push(content.substring(lastEnd))
+    }
+    // Trailing newline ensures backdrop height matches textarea
+    parts.push('\n')
+
+    return parts
+  }, [content, searchTerm, matches, matchIndex])
+
   if (!currentFile) {
     return (
       <div className={styles.editor}>
@@ -65,6 +128,8 @@ function TextEditor() {
       </div>
     )
   }
+
+  const showHighlight = showSearch && searchTerm && matches.length > 0
 
   return (
     <div className={styles.editor}>
@@ -81,19 +146,27 @@ function TextEditor() {
           setReplaceTerm={setReplaceTerm}
           matchIndex={matchIndex}
           matchCount={matchCount}
-          onFindNext={findNext}
+          onFindNext={handleFindNext}
           onReplace={replaceOne}
           onReplaceAll={replaceAll}
           onClose={() => setShowSearch(false)}
         />
       )}
-      <textarea
-        ref={textareaRef}
-        className={styles.textarea}
-        value={content}
-        onChange={handleChange}
-        spellCheck={false}
-      />
+      <div className={styles.highlightContainer}>
+        {showHighlight && (
+          <div ref={backdropRef} className={styles.backdrop} aria-hidden="true">
+            {highlightedContent}
+          </div>
+        )}
+        <textarea
+          ref={textareaRef}
+          className={showHighlight ? `${styles.textarea} ${styles.textareaTransparent}` : styles.textarea}
+          value={content}
+          onChange={handleChange}
+          onScroll={syncScroll}
+          spellCheck={false}
+        />
+      </div>
     </div>
   )
 }
