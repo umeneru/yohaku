@@ -9,7 +9,7 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 8px 16px;
   border-bottom: none;
   flex-shrink: 0;
@@ -40,7 +40,7 @@
 
 .textarea {
   flex: 1;
-  padding: 16px;
+  padding: 0px 16px 16px 16px;
   border: none;
   outline: none;
   resize: none;

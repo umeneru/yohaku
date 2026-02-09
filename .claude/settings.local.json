@@ -36,7 +36,9 @@
       "Bash(gh run view:*)",
       "Bash(gh release view:*)",
       "Bash(gh release delete:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(git remote get-url:*)"
     ]
   }
 }
