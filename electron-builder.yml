@@ -13,7 +13,6 @@ linux:
 win:
   target:
     - nsis
-    - portable
   artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 nsis:
   oneClick: false
