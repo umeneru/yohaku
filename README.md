@@ -1,32 +1,35 @@
 # Yohaku.
 
-ミニマルなテキストエディタ。
+A minimal text editor.
+
+[日本語](./README.ja.md)
+
+![Thumbnail](./assets/yohaku_samune.png)
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## 特徴
+## Features
 
-- 2カラムレイアウト（ファイルエクスプローラー + テキストエディタ）
-- 自動保存（1秒デバウンス）
-- テキスト検索と置換（Ctrl+F）
-- ディレクトリ内キーワード検索
-- ディレクトリのワークスペース設定
-- グローバルホットキー対応（設定可能）
+- Two-column layout (file explorer + text editor)
+- Auto-save (1-second debounce)
+- Text search and replace (Ctrl+F)
+- Keyword search within directory
+- Directory workspace management
+- Global hotkey support (configurable)
 
+## Download
 
-## ダウンロード
+Download Windows (.exe) / Linux (.AppImage) from [Releases](https://github.com/umeneru/yohaku/releases).
 
-[Releases](https://github.com/umeneru/yohaku/releases) から Windows (.exe) / Linux (.AppImage) をダウンロードできます。
+## Development
 
-## 開発
-
-### 必要な環境
+### Requirements
 
 - Node.js 22+
 - npm
 
-### セットアップ
+### Setup
 
 ```bash
 git clone https://github.com/umeneru/yohaku.git
@@ -34,45 +37,43 @@ cd yohaku
 npm install
 ```
 
-### 開発サーバー起動
+### Start development server
 
 ```bash
 npm run dev
 ```
 
-### ビルド
+### Build
 
 ```bash
-npm run build          # プロダクションビルド
-npm run dist           # 配布用パッケージ作成（全プラットフォーム）
-npm run dist:win       # Windows用配布パッケージ作成
+npm run build          # Production build
+npm run dist           # Create distributable packages (all platforms)
+npm run dist:win       # Create Windows distributable package
 ```
 
-## 技術スタック
+## Tech Stack
 
-- **Electron** - デスクトップアプリケーションフレームワーク
-- **React 19** - UIライブラリ
-- **electron-vite** - ホットリロード対応ビルドツール
-- **CSS Modules** - スコープ付きスタイリング
+- **Electron** - Desktop application framework
+- **React 19** - UI library
+- **electron-vite** - Build tool with hot reload
+- **CSS Modules** - Scoped styling
 
-## プロジェクト構成
+## Project Structure
 
 ```
 src/
-├── main/            # メインプロセス（ファイル操作、IPC、ウィンドウ管理）
-├── preload/         # プリロードスクリプト（contextBridge API）
-└── renderer/        # レンダラープロセス（React UI）
+├── main/            # Main process (file operations, IPC, window management)
+├── preload/         # Preload script (contextBridge API)
+└── renderer/        # Renderer process (React UI)
     └── src/
         ├── components/
-        │   ├── FileExplorer/   # ファイルツリー、検索、コンテキストメニュー
-        │   ├── TextEditor/     # エディタ、検索バー
-        │   └── Resizer/        # カラムリサイズ
-        ├── context/            # AppContext（useReducer + Context API）
+        │   ├── FileExplorer/   # File tree, search, context menu
+        │   ├── TextEditor/     # Editor, search bar
+        │   └── Resizer/        # Column resize
+        ├── context/            # AppContext (useReducer + Context API)
         └── App.jsx
 ```
 
-
-
-## ライセンス
+## License
 
 [MIT](LICENSE)
