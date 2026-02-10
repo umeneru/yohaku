@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, globalShortcut, ipcMain } from 'electron'
+import { app, BrowserWindow, Menu, globalShortcut, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { watch } from 'fs'
 import { registerIpcHandlers, loadSettings } from './ipc-handlers'
@@ -44,6 +44,14 @@ function registerHotkey(accelerator) {
           win.hide()
         } else {
           if (win.isMinimized()) win.restore()
+          const cursorPoint = screen.getCursorScreenPoint()
+          const display = screen.getDisplayNearestPoint(cursorPoint)
+          const { x, y, width, height } = display.workArea
+          const bounds = win.getBounds()
+          win.setPosition(
+            Math.round(x + (width - bounds.width) / 2),
+            Math.round(y + (height - bounds.height) / 2)
+          )
           win.show()
           win.focus()
         }
