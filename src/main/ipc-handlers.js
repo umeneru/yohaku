@@ -36,8 +36,15 @@ async function saveHistory(history) {
 
 async function addToHistory(dirPath) {
   const history = await loadHistory()
-  const filtered = history.filter((p) => p !== dirPath)
-  const newHistory = [dirPath, ...filtered].slice(0, 10)
+  if (history.includes(dirPath)) return history
+  const newHistory = [...history, dirPath].slice(0, 10)
+  await saveHistory(newHistory)
+  return newHistory
+}
+
+async function removeFromHistory(dirPath) {
+  const history = await loadHistory()
+  const newHistory = history.filter((p) => p !== dirPath)
   await saveHistory(newHistory)
   return newHistory
 }
@@ -196,6 +203,10 @@ export function registerIpcHandlers() {
 
   ipcMain.handle('history:add', async (_event, dirPath) => {
     return await addToHistory(dirPath)
+  })
+
+  ipcMain.handle('history:remove', async (_event, dirPath) => {
+    return await removeFromHistory(dirPath)
   })
 
   ipcMain.handle('fs:rename', async (_event, oldPath, newPath) => {

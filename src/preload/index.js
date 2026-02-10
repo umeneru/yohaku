@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchInDirectory: (rootPath, keyword) => ipcRenderer.invoke('fs:searchInDirectory', rootPath, keyword),
   getDirectoryHistory: () => ipcRenderer.invoke('history:get'),
   addToDirectoryHistory: (dirPath) => ipcRenderer.invoke('history:add', dirPath),
+  removeFromDirectoryHistory: (dirPath) => ipcRenderer.invoke('history:remove', dirPath),
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:set', settings),
   updateHotkey: (hotkey) => ipcRenderer.send('settings:updateHotkey', hotkey),

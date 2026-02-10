@@ -269,6 +269,10 @@ function FileExplorer() {
           onSelect={handleSelectFromHistory}
           onSelectNew={handleSelectNew}
           onClose={() => setShowPicker(false)}
+          onRemove={async (dirPath) => {
+            const updated = await window.electronAPI.removeFromDirectoryHistory(dirPath)
+            setHistory(updated)
+          }}
         />
       )}
       {contextMenu && (
