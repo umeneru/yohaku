@@ -16,11 +16,13 @@ function App() {
   return (
     <AppProvider>
       <div className={styles.app}>
-        <div style={{ width: explorerWidth, minWidth: 150, flexShrink: 0 }}>
+        <div className={styles.explorerWrap} style={{ width: explorerWidth, minWidth: 150 }}>
           <FileExplorer />
         </div>
         <Resizer onResize={handleResize} />
-        <TextEditor />
+        <div className={styles.editorWrap}>
+          <TextEditor />
+        </div>
       </div>
     </AppProvider>
   )

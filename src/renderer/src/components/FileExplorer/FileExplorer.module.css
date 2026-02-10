@@ -4,7 +4,10 @@
   height: 100%;
   background: #f3f3f3;
   border-right: 1px solid #e0e0e0;
-  overflow: hidden;
+  overflow: visible;
+  contain: size layout style;
+  position: relative;
+  z-index: 10;
 }
 
 .header {

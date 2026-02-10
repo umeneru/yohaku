@@ -64,11 +64,13 @@ function FileExplorer() {
     setShowPicker(false)
     const dirPath = await window.electronAPI.openDirectoryDialog()
     if (!dirPath) return
+    setShowSearch(false)
     await openDirectory(dirPath)
   }
 
   const handleSelectFromHistory = async (dirPath) => {
     setShowPicker(false)
+    setShowSearch(false)
     await openDirectory(dirPath)
   }
 
