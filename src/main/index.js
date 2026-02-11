@@ -48,10 +48,12 @@ function registerHotkey(accelerator) {
           const cursorPoint = screen.getCursorScreenPoint()
           const display = screen.getDisplayNearestPoint(cursorPoint)
           const { x, y, width, height } = display.workArea
-          const bounds = win.getBounds()
+          // 一旦移動先ディスプレイに移動させ、DPIによるサイズ調整を反映させる
+          win.setPosition(x, y)
+          const adjusted = win.getBounds()
           win.setPosition(
-            Math.round(x + (width - bounds.width) / 2),
-            Math.round(y + (height - bounds.height) / 2)
+            Math.round(x + (width - adjusted.width) / 2),
+            Math.round(y + (height - adjusted.height) / 2)
           )
           win.show()
           win.focus()
