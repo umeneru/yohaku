@@ -110,7 +110,7 @@ function FileExplorer() {
     setContextMenu(null)
     setInputDialog({
       title: 'New File',
-      defaultValue: 'untitled.txt',
+      defaultValue: 'untitled',
       type: 'file',
       targetDir,
       submitLabel: 'Create'
@@ -180,6 +180,7 @@ function FileExplorer() {
 
     try {
       if (type === 'file') {
+        if (!name.includes('.')) name += '.txt'
         const filePath = pathJoin(targetDir, name)
         console.log('Creating file:', filePath)
         await window.electronAPI.createFile(filePath)

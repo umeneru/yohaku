@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './Settings.module.css'
 
 const MODIFIER_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta'])
@@ -67,7 +68,7 @@ function Settings({ onClose }) {
 
   if (loading) return null
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onMouseDown={onClose}>
       <div className={styles.dialog} onMouseDown={(e) => e.stopPropagation()}>
         <div className={styles.title}>Settings</div>
@@ -95,7 +96,8 @@ function Settings({ onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

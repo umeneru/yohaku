@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './InputDialog.module.css'
 
 function InputDialog({ title, defaultValue, onSubmit, onCancel, submitLabel = 'OK' }) {
@@ -31,7 +32,7 @@ function InputDialog({ title, defaultValue, onSubmit, onCancel, submitLabel = 'O
     }
   }
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onMouseDown={onCancel}>
       <div className={styles.dialog} onMouseDown={(e) => e.stopPropagation()}>
         <div className={styles.title}>{title}</div>
@@ -52,7 +53,8 @@ function InputDialog({ title, defaultValue, onSubmit, onCancel, submitLabel = 'O
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
