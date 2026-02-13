@@ -1,4 +1,4 @@
-import { ipcMain, dialog, app } from 'electron'
+import { ipcMain, dialog, app, shell } from 'electron'
 import { readdir, readFile, writeFile, mkdir, access, rename, unlink, rm } from 'fs/promises'
 import { join } from 'path'
 import { constants } from 'fs'
@@ -247,6 +247,12 @@ export function registerIpcHandlers() {
       return await searchInDirectory(rootPath, keyword)
     } catch (err) {
       throw new Error(`Search failed: ${err.message}`)
+    }
+  })
+
+  ipcMain.handle('shell:openExternal', async (_event, url) => {
+    if (typeof url === 'string' && /^https?:\/\//.test(url)) {
+      await shell.openExternal(url)
     }
   })
 

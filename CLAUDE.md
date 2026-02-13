@@ -117,8 +117,9 @@ App.jsx（ルート）
 │  ├─ TreeNode（再帰的ツリー）
 │  ├─ SearchPanel（ディレクトリ内キーワード検索）
 │  ├─ ContextMenu（右クリックメニュー）
-│  ├─ InputDialog（新規作成/リネーム用モーダル）
-│  └─ DirectoryPicker（ディレクトリ履歴ポップアップ）
+│  ├─ InputDialog（新規作成/リネーム用モーダル、Portal経由でbodyに描画）
+│  ├─ DirectoryPicker（ディレクトリ履歴ポップアップ）
+│  └─ Settings（グローバルホットキー設定モーダル、Portal経由でbodyに描画）
 ├─ Resizer（ドラッグ可能な区切り線）
 └─ TextEditor（右ペイン）
    └─ SearchBar（Ctrl+F検索）
@@ -197,3 +198,5 @@ git push origin main --tags
 4. **自動保存のデバウンス** - useEffectのreturnでタイマーをクリーンアップすること
 5. **メニューバー非表示** - メインプロセスで `Menu.setApplicationMenu(null)` を設定
 6. **ファイルシステムアクセス** - レンダラーから直接Node.js APIを使わず、必ずIPC経由で操作
+7. **モーダルダイアログは `createPortal` 必須** - FileExplorer（`.explorer`）と TextEditor に `contain: size layout style` / `contain: strict` が設定されており、`position: fixed` の包含ブロックが変わるため、`InputDialog` と `Settings` は `createPortal(jsx, document.body)` でレンダリングすること。新しいモーダルを追加する場合も同様
+8. **新規ファイル作成時の拡張子** - ユーザーが拡張子を入力しなかった場合、自動で `.txt` を付与する（`FileExplorer.jsx` の `handleDialogSubmit`）

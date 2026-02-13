@@ -11,6 +11,8 @@ function TextEditor() {
   const backdropRef = useRef(null)
   const activeMarkRef = useRef(null)
   const [showSearch, setShowSearch] = useState(false)
+  const [ctrlPressed, setCtrlPressed] = useState(false)
+  const urlOverlayRef = useRef(null)
 
   const {
     searchTerm, setSearchTerm,
@@ -44,9 +46,20 @@ function TextEditor() {
         e.preventDefault()
         setShowSearch((v) => !v)
       }
+      if (e.key === 'Control') setCtrlPressed(true)
     }
+    const handleKeyUp = (e) => {
+      if (e.key === 'Control') setCtrlPressed(false)
+    }
+    const handleBlur = () => setCtrlPressed(false)
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleBlur)
+    }
   }, [])
 
   useEffect(() => {
@@ -61,10 +74,62 @@ function TextEditor() {
     dispatch({ type: 'UPDATE_CONTENT', content: e.target.value })
   }
 
+  const URL_REGEX = /https?:\/\/[^\s)"\]>]+/g
+
+  const urlMatches = useMemo(() => {
+    const result = []
+    let m
+    const re = new RegExp(URL_REGEX.source, 'g')
+    while ((m = re.exec(content)) !== null) {
+      result.push({ start: m.index, end: m.index + m[0].length, url: m[0] })
+    }
+    return result
+  }, [content])
+
+  const urlOverlayContent = useMemo(() => {
+    if (urlMatches.length === 0) return null
+    const parts = []
+    let lastEnd = 0
+    for (let i = 0; i < urlMatches.length; i++) {
+      const { start, end, url } = urlMatches[i]
+      if (start > lastEnd) {
+        parts.push(content.substring(lastEnd, start))
+      }
+      parts.push(
+        <span key={i} className={styles.urlLink}>{url}</span>
+      )
+      lastEnd = end
+    }
+    if (lastEnd < content.length) {
+      parts.push(content.substring(lastEnd))
+    }
+    parts.push('\n')
+    return parts
+  }, [content, urlMatches])
+
+  const handleTextareaClick = useCallback((e) => {
+    if (!e.ctrlKey || urlMatches.length === 0) return
+    const pos = textareaRef.current?.selectionStart
+    if (pos == null) return
+    for (const { start, end, url } of urlMatches) {
+      if (pos >= start && pos <= end) {
+        e.preventDefault()
+        window.electronAPI.openExternal(url)
+        return
+      }
+    }
+  }, [urlMatches])
+
   const syncScroll = useCallback(() => {
-    if (textareaRef.current && backdropRef.current) {
-      backdropRef.current.scrollTop = textareaRef.current.scrollTop
-      backdropRef.current.scrollLeft = textareaRef.current.scrollLeft
+    const scrollTop = textareaRef.current?.scrollTop
+    const scrollLeft = textareaRef.current?.scrollLeft
+    if (backdropRef.current) {
+      backdropRef.current.scrollTop = scrollTop
+      backdropRef.current.scrollLeft = scrollLeft
+    }
+    if (urlOverlayRef.current) {
+      urlOverlayRef.current.scrollTop = scrollTop
+      urlOverlayRef.current.scrollLeft = scrollLeft
     }
   }, [])
 
@@ -158,11 +223,17 @@ function TextEditor() {
             {highlightedContent}
           </div>
         )}
+        {ctrlPressed && urlOverlayContent && (
+          <div ref={urlOverlayRef} className={styles.urlOverlay} aria-hidden="true">
+            {urlOverlayContent}
+          </div>
+        )}
         <textarea
           ref={textareaRef}
-          className={showHighlight ? `${styles.textarea} ${styles.textareaTransparent}` : styles.textarea}
+          className={`${styles.textarea}${showHighlight ? ` ${styles.textareaTransparent}` : ''}${ctrlPressed && urlMatches.length > 0 ? ` ${styles.textareaCursorPointer} ${styles.textareaTransparent}` : ''}`}
           value={content}
           onChange={handleChange}
+          onClick={handleTextareaClick}
           onScroll={syncScroll}
           spellCheck={false}
         />
