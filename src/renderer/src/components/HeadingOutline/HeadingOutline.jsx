@@ -73,10 +73,8 @@ function HeadingOutline({ editorRef }) {
 
   return (
     <div className={`${styles.outline} ${sidebarLayout === 'swap' ? styles.outlineLeft : styles.outlineRight}`}>
-      <div className={styles.header}>Outline</div>
-      {tree.length === 0 ? (
-        <div className={styles.empty}>No headings</div>
-      ) : (
+      <div className={styles.header} />
+      {tree.length > 0 && (
         <div className={styles.treeContainer}>
           {tree.map((node) => (
             <HeadingNode

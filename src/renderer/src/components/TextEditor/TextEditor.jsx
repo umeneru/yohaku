@@ -4,7 +4,7 @@ import { useSearchReplace } from '../../hooks/useSearchReplace'
 import SearchBar from './SearchBar'
 import styles from './TextEditor.module.css'
 
-const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisible }, ref) {
+const TextEditor = forwardRef(function TextEditor(props, ref) {
   const { currentFile, content, isDirty } = useAppState()
   const dispatch = useAppDispatch()
   const textareaRef = useRef(null)
@@ -298,18 +298,6 @@ const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisi
         <span className={styles.fileName}>
           {fileName}
         </span>
-        <button
-          className={`${styles.outlineToggle} ${outlineVisible ? styles.outlineToggleActive : ''}`}
-          onClick={onToggleOutline}
-          title="Toggle Outline"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <rect x="2" y="2" width="12" height="1.5" rx="0.5" />
-            <rect x="5" y="5.5" width="9" height="1.5" rx="0.5" />
-            <rect x="5" y="9" width="9" height="1.5" rx="0.5" />
-            <rect x="2" y="12.5" width="12" height="1.5" rx="0.5" />
-          </svg>
-        </button>
       </div>
       {showSearch && (
         <SearchBar

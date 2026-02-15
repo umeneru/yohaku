@@ -18,34 +18,6 @@
   position: relative;
 }
 
-.outlineToggle {
-  position: absolute;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  color: #888;
-}
-
-.outlineToggle:hover {
-  background: #f0f0f0;
-  color: #555;
-}
-
-.outlineToggleActive {
-  color: #0078d4;
-}
-
-.outlineToggleActive:hover {
-  color: #0078d4;
-}
 
 .fileName {
   font-size: 13px;

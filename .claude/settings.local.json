@@ -39,7 +39,13 @@
       "Bash(npm run build:*)",
       "Bash(find:*)",
       "Bash(git remote get-url:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(git -C /home/ukimm/workspace/dev/yohaku status)",
+      "Bash(git -C /home/ukimm/workspace/dev/yohaku diff --stat)",
+      "Bash(git -C /home/ukimm/workspace/dev/yohaku log --oneline -5)",
+      "Bash(git -C /home/ukimm/workspace/dev/yohaku diff HEAD --stat)",
+      "Bash(git -C /home/ukimm/workspace/dev/yohaku add package.json CLAUDE.md README.md README.ja.md)",
+      "Bash(git -C:*)"
     ]
   }
 }

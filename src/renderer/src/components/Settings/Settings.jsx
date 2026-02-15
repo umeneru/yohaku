@@ -31,6 +31,7 @@ function Settings({ onClose }) {
   const [displayKey, setDisplayKey] = useState('')
   const [headingChar, setHeadingChar] = useState('#')
   const [sidebarLayout, setSidebarLayout] = useState('default')
+  const [outlineVisible, setOutlineVisible] = useState(true)
   const [loading, setLoading] = useState(true)
   const savedRef = useRef(false)
   const inputRef = useRef(null)
@@ -44,6 +45,7 @@ function Settings({ onClose }) {
       setDisplayKey(settings.hotkey || '')
       setHeadingChar(settings.headingChar || '#')
       setSidebarLayout(settings.sidebarLayout || 'default')
+      setOutlineVisible(settings.outlineVisible !== undefined ? settings.outlineVisible : true)
       setLoading(false)
     }
     load()
@@ -66,7 +68,7 @@ function Settings({ onClose }) {
 
   const handleSave = async () => {
     savedRef.current = true
-    const settings = { hotkey, headingChar, sidebarLayout }
+    const settings = { hotkey, headingChar, sidebarLayout, outlineVisible }
     await window.electronAPI.saveSettings(settings)
     window.electronAPI.updateHotkey(hotkey)
     dispatch({ type: 'SET_HEADING_CHAR', headingChar })
@@ -107,6 +109,20 @@ function Settings({ onClose }) {
           </select>
           <div className={styles.hint}>
             Switch the positions of Explorer and Outline sidebars.
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Open Outline on Startup</label>
+          <select
+            className={styles.input}
+            value={outlineVisible ? 'true' : 'false'}
+            onChange={(e) => setOutlineVisible(e.target.value === 'true')}
+          >
+            <option value="true">Open</option>
+            <option value="false">Closed</option>
+          </select>
+          <div className={styles.hint}>
+            Whether to show the heading outline panel when the app starts.
           </div>
         </div>
         <div className={styles.field}>

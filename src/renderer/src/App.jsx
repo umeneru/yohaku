@@ -8,7 +8,7 @@ import styles from './App.module.css'
 
 function AppContent() {
   const [explorerWidth, setExplorerWidth] = useState(250)
-  const [outlineVisible, setOutlineVisible] = useState(false)
+  const [outlineVisible, setOutlineVisible] = useState(true)
   const [outlineWidth, setOutlineWidth] = useState(200)
   const editorRef = useRef(null)
   const dispatch = useAppDispatch()
@@ -21,6 +21,9 @@ function AppContent() {
       }
       if (settings.sidebarLayout) {
         dispatch({ type: 'SET_SIDEBAR_LAYOUT', sidebarLayout: settings.sidebarLayout })
+      }
+      if (settings.outlineVisible !== undefined) {
+        setOutlineVisible(settings.outlineVisible)
       }
     })
   }, [dispatch])
@@ -45,10 +48,6 @@ function AppContent() {
     }
   }, [sidebarLayout])
 
-  const handleToggleOutline = useCallback(() => {
-    setOutlineVisible((v) => !v)
-  }, [])
-
   const swapped = sidebarLayout === 'swap'
 
   const explorerPanel = (
@@ -65,11 +64,7 @@ function AppContent() {
 
   const editorPanel = (
     <div className={styles.editorWrap}>
-      <TextEditor
-        ref={editorRef}
-        onToggleOutline={handleToggleOutline}
-        outlineVisible={outlineVisible}
-      />
+      <TextEditor ref={editorRef} />
     </div>
   )
 
