@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useAppState } from '../../context/AppContext'
 import { parseHeadings, buildHeadingTree } from './parseHeadings'
 import styles from './HeadingOutline.module.css'
