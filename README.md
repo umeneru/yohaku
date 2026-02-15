@@ -17,6 +17,8 @@ A minimal text editor.
 - Keyword search within directory
 - Directory workspace management
 - Global hotkey support (configurable)
+- Heading outline sidebar (click to jump, configurable heading character)
+- Swappable sidebar layout (explorer/outline left/right)
 
 ## Download
 
@@ -69,6 +71,7 @@ src/
         ├── components/
         │   ├── FileExplorer/   # File tree, search, context menu
         │   ├── TextEditor/     # Editor, search bar
+        │   ├── HeadingOutline/ # Heading outline sidebar
         │   └── Resizer/        # Column resize
         ├── context/            # AppContext (useReducer + Context API)
         └── App.jsx
