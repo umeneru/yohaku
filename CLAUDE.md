@@ -103,6 +103,9 @@ useEffect(() => {
 - `fs:checkDirectoryEmpty` - ディレクトリ削除前の空チェック
 - `fs:searchInDirectory` - ディレクトリ内キーワード検索（再帰的、大文字小文字区別なし、最大500件）
 
+**シェル操作：**
+- `shell:openExternal` - 外部ブラウザでURLを開く
+
 **ダイアログ操作：**
 - `dialog:openDirectory` - システムディレクトリ選択ダイアログ
 
@@ -189,6 +192,14 @@ git push origin main --tags
 - 隠しファイル（`.`始まり）・`node_modules`・バイナリファイルはスキップ
 - 結果上限500件、ヒット箇所は黄色ハイライト表示
 - Escapeキーで検索パネルを閉じる
+
+### URLリンク機能
+
+TextEditor内のURLテキスト（`https?://...`）にホバーするとアンダーラインが表示され、Ctrl+クリックで外部ブラウザで開く：
+- テキストと同期スクロールするURLオーバーレイレイヤーで実装
+- URL span要素に `pointer-events: auto` を設定し、CSSの `:hover` でアンダーライン表示
+- クリック時はtextareaにカーソル配置（`caretRangeFromPoint` で位置計算）、Ctrl+クリック時のみURL を開く
+- URL上でのスクロール（wheel）イベントはtextareaに転送
 
 ### 実装上の重要な注意点
 

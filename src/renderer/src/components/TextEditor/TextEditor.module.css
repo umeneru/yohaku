@@ -117,13 +117,14 @@
 
 .urlLink {
   color: transparent;
+  pointer-events: auto;
+  cursor: text;
+}
+
+.urlLink:hover {
   text-decoration: underline;
   text-decoration-color: #4a9eff;
   text-decoration-thickness: 2px;
-}
-
-.textareaCursorPointer {
-  cursor: pointer;
 }
 
 .placeholder {
