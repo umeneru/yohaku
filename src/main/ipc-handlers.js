@@ -6,7 +6,7 @@ import { constants } from 'fs'
 const HISTORY_FILE = join(app.getPath('userData'), 'directory-history.json')
 const SETTINGS_FILE = join(app.getPath('userData'), 'settings.json')
 
-const DEFAULT_SETTINGS = { hotkey: 'CommandOrControl+Shift+Y' }
+const DEFAULT_SETTINGS = { hotkey: 'CommandOrControl+Shift+Y', headingChar: '#', sidebarLayout: 'default' }
 
 async function loadSettings() {
   try {

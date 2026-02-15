@@ -22,3 +22,9 @@
   flex: 1;
   min-width: 0;
 }
+
+.outlineWrap {
+  flex-shrink: 0;
+  height: 100%;
+  overflow: hidden;
+}

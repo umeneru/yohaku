@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react'
+import React, { useRef, useEffect, useCallback, useState, useMemo, forwardRef, useImperativeHandle } from 'react'
 import { useAppState, useAppDispatch } from '../../context/AppContext'
 import { useSearchReplace } from '../../hooks/useSearchReplace'
 import SearchBar from './SearchBar'
 import styles from './TextEditor.module.css'
 
-function TextEditor() {
+const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisible }, ref) {
   const { currentFile, content, isDirty } = useAppState()
   const dispatch = useAppDispatch()
   const textareaRef = useRef(null)
@@ -22,6 +22,42 @@ function TextEditor() {
   } = useSearchReplace(content, dispatch, textareaRef)
 
   const fileName = currentFile ? currentFile.split(/[/\\]/).pop() : null
+
+  const syncScroll = useCallback(() => {
+    const scrollTop = textareaRef.current?.scrollTop
+    const scrollLeft = textareaRef.current?.scrollLeft
+    if (backdropRef.current) {
+      backdropRef.current.scrollTop = scrollTop
+      backdropRef.current.scrollLeft = scrollLeft
+    }
+    if (urlOverlayRef.current) {
+      urlOverlayRef.current.scrollTop = scrollTop
+      urlOverlayRef.current.scrollLeft = scrollLeft
+    }
+  }, [])
+
+  useImperativeHandle(ref, () => ({
+    scrollToLine(lineIndex) {
+      const textarea = textareaRef.current
+      if (!textarea) return
+      const style = getComputedStyle(textarea)
+      const fontSize = parseFloat(style.fontSize)
+      const rawLineHeight = parseFloat(style.lineHeight)
+      const lineHeight = rawLineHeight < 4 ? rawLineHeight * fontSize : rawLineHeight
+      const targetTop = lineIndex * lineHeight
+      textarea.scrollTop = Math.max(0, targetTop)
+      syncScroll()
+
+      // Move cursor to the beginning of the target line
+      const lines = content.split('\n')
+      let pos = 0
+      for (let i = 0; i < lineIndex && i < lines.length; i++) {
+        pos += lines[i].length + 1
+      }
+      textarea.focus()
+      textarea.setSelectionRange(pos, pos)
+    }
+  }), [content, syncScroll])
 
   // Auto-save with debounce
   useEffect(() => {
@@ -75,19 +111,6 @@ function TextEditor() {
     }
     return result
   }, [content])
-
-  const syncScroll = useCallback(() => {
-    const scrollTop = textareaRef.current?.scrollTop
-    const scrollLeft = textareaRef.current?.scrollLeft
-    if (backdropRef.current) {
-      backdropRef.current.scrollTop = scrollTop
-      backdropRef.current.scrollLeft = scrollLeft
-    }
-    if (urlOverlayRef.current) {
-      urlOverlayRef.current.scrollTop = scrollTop
-      urlOverlayRef.current.scrollLeft = scrollLeft
-    }
-  }, [])
 
   const handleUrlMouseDown = useCallback((e) => {
     if (e.ctrlKey) return
@@ -215,6 +238,18 @@ function TextEditor() {
         <span className={styles.fileName}>
           {fileName}
         </span>
+        <button
+          className={`${styles.outlineToggle} ${outlineVisible ? styles.outlineToggleActive : ''}`}
+          onClick={onToggleOutline}
+          title="Toggle Outline"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="2" y="2" width="12" height="1.5" rx="0.5" />
+            <rect x="5" y="5.5" width="9" height="1.5" rx="0.5" />
+            <rect x="5" y="9" width="9" height="1.5" rx="0.5" />
+            <rect x="2" y="12.5" width="12" height="1.5" rx="0.5" />
+          </svg>
+        </button>
       </div>
       {showSearch && (
         <SearchBar
@@ -252,6 +287,6 @@ function TextEditor() {
       </div>
     </div>
   )
-}
+})
 
 export default TextEditor

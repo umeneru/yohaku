@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useAppDispatch } from '../../context/AppContext'
 import styles from './Settings.module.css'
 
 const MODIFIER_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta'])
@@ -28,9 +29,12 @@ function keyEventToAccelerator(e) {
 function Settings({ onClose }) {
   const [hotkey, setHotkey] = useState('')
   const [displayKey, setDisplayKey] = useState('')
+  const [headingChar, setHeadingChar] = useState('#')
+  const [sidebarLayout, setSidebarLayout] = useState('default')
   const [loading, setLoading] = useState(true)
   const savedRef = useRef(false)
   const inputRef = useRef(null)
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
     window.electronAPI.suspendHotkey()
@@ -38,6 +42,8 @@ function Settings({ onClose }) {
       const settings = await window.electronAPI.getSettings()
       setHotkey(settings.hotkey || '')
       setDisplayKey(settings.hotkey || '')
+      setHeadingChar(settings.headingChar || '#')
+      setSidebarLayout(settings.sidebarLayout || 'default')
       setLoading(false)
     }
     load()
@@ -60,9 +66,11 @@ function Settings({ onClose }) {
 
   const handleSave = async () => {
     savedRef.current = true
-    const settings = { hotkey }
+    const settings = { hotkey, headingChar, sidebarLayout }
     await window.electronAPI.saveSettings(settings)
     window.electronAPI.updateHotkey(hotkey)
+    dispatch({ type: 'SET_HEADING_CHAR', headingChar })
+    dispatch({ type: 'SET_SIDEBAR_LAYOUT', sidebarLayout })
     onClose()
   }
 
@@ -85,6 +93,37 @@ function Settings({ onClose }) {
           />
           <div className={styles.hint}>
             Press a key combination (e.g. Ctrl+Shift+Y) to set the global hotkey for showing the app.
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Sidebar Layout</label>
+          <select
+            className={styles.input}
+            value={sidebarLayout}
+            onChange={(e) => setSidebarLayout(e.target.value)}
+          >
+            <option value="default">Explorer (left) / Outline (right)</option>
+            <option value="swap">Outline (left) / Explorer (right)</option>
+          </select>
+          <div className={styles.hint}>
+            Switch the positions of Explorer and Outline sidebars.
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Heading Character</label>
+          <input
+            className={styles.input}
+            type="text"
+            value={headingChar}
+            onChange={(e) => {
+              const val = e.target.value
+              if (val.length <= 1) setHeadingChar(val)
+            }}
+            maxLength={1}
+            placeholder="#"
+          />
+          <div className={styles.hint}>
+            Character used as heading prefix (e.g. #). Repeat count determines the level.
           </div>
         </div>
         <div className={styles.buttons}>

@@ -10,7 +10,9 @@ const initialState = {
   content: '',
   savedContent: '',
   isDirty: false,
-  refreshSignal: 0
+  refreshSignal: 0,
+  headingChar: '#',
+  sidebarLayout: 'default'
 }
 
 function appReducer(state, action) {
@@ -19,7 +21,9 @@ function appReducer(state, action) {
       return {
         ...initialState,
         rootPath: action.rootPath,
-        tree: action.tree
+        tree: action.tree,
+        headingChar: state.headingChar,
+        sidebarLayout: state.sidebarLayout
       }
     }
     case 'UPDATE_TREE': {
@@ -54,6 +58,12 @@ function appReducer(state, action) {
         tree: action.tree,
         refreshSignal: state.refreshSignal + 1
       }
+    }
+    case 'SET_HEADING_CHAR': {
+      return { ...state, headingChar: action.headingChar }
+    }
+    case 'SET_SIDEBAR_LAYOUT': {
+      return { ...state, sidebarLayout: action.sidebarLayout }
     }
     default:
       return state

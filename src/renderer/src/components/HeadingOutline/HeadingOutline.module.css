@@ -1,0 +1,87 @@
+.outline {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+}
+
+.outlineRight {
+  border-left: 1px solid #e0e0e0;
+}
+
+.outlineLeft {
+  border-right: 1px solid #e0e0e0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e1e1e;
+}
+
+.treeContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.headingItem {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  cursor: pointer;
+  user-select: none;
+  gap: 2px;
+}
+
+.headingItem:hover {
+  background: #f0f0f0;
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #888;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.arrowExpanded {
+  transform: rotate(90deg);
+}
+
+.arrow:hover {
+  color: #555;
+}
+
+.arrowPlaceholder {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.headingText {
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 13px;
+}
