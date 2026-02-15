@@ -36,17 +36,61 @@ const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisi
     }
   }, [])
 
+  const measureScrollTopForPosition = useCallback((textarea, text, position) => {
+    const clampedPosition = Math.max(0, Math.min(position, text.length))
+    const computedStyle = window.getComputedStyle(textarea)
+    const mirror = document.createElement('div')
+
+    mirror.style.position = 'absolute'
+    mirror.style.visibility = 'hidden'
+    mirror.style.pointerEvents = 'none'
+    mirror.style.zIndex = '-1'
+    mirror.style.top = '0'
+    mirror.style.left = '-99999px'
+    mirror.style.boxSizing = computedStyle.boxSizing
+    mirror.style.width = `${textarea.clientWidth}px`
+    mirror.style.paddingTop = computedStyle.paddingTop
+    mirror.style.paddingRight = computedStyle.paddingRight
+    mirror.style.paddingBottom = computedStyle.paddingBottom
+    mirror.style.paddingLeft = computedStyle.paddingLeft
+    mirror.style.borderTopWidth = computedStyle.borderTopWidth
+    mirror.style.borderRightWidth = computedStyle.borderRightWidth
+    mirror.style.borderBottomWidth = computedStyle.borderBottomWidth
+    mirror.style.borderLeftWidth = computedStyle.borderLeftWidth
+    mirror.style.borderTopStyle = computedStyle.borderTopStyle
+    mirror.style.borderRightStyle = computedStyle.borderRightStyle
+    mirror.style.borderBottomStyle = computedStyle.borderBottomStyle
+    mirror.style.borderLeftStyle = computedStyle.borderLeftStyle
+    mirror.style.fontFamily = computedStyle.fontFamily
+    mirror.style.fontSize = computedStyle.fontSize
+    mirror.style.fontWeight = computedStyle.fontWeight
+    mirror.style.fontStyle = computedStyle.fontStyle
+    mirror.style.letterSpacing = computedStyle.letterSpacing
+    mirror.style.lineHeight = computedStyle.lineHeight
+    mirror.style.textTransform = computedStyle.textTransform
+    mirror.style.textIndent = computedStyle.textIndent
+    mirror.style.tabSize = computedStyle.tabSize
+    mirror.style.whiteSpace = 'pre-wrap'
+    mirror.style.wordBreak = 'break-word'
+    mirror.style.overflowWrap = 'break-word'
+
+    const beforeText = text.slice(0, clampedPosition)
+    const marker = document.createElement('span')
+    marker.textContent = '\u200b'
+
+    mirror.textContent = beforeText
+    mirror.appendChild(marker)
+    document.body.appendChild(mirror)
+
+    const targetTop = marker.offsetTop
+    document.body.removeChild(mirror)
+    return targetTop
+  }, [])
+
   useImperativeHandle(ref, () => ({
     scrollToLine(lineIndex) {
       const textarea = textareaRef.current
       if (!textarea) return
-      const style = getComputedStyle(textarea)
-      const fontSize = parseFloat(style.fontSize)
-      const rawLineHeight = parseFloat(style.lineHeight)
-      const lineHeight = rawLineHeight < 4 ? rawLineHeight * fontSize : rawLineHeight
-      const targetTop = lineIndex * lineHeight
-      textarea.scrollTop = Math.max(0, targetTop)
-      syncScroll()
 
       // Move cursor to the beginning of the target line
       const lines = content.split('\n')
@@ -54,10 +98,31 @@ const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisi
       for (let i = 0; i < lineIndex && i < lines.length; i++) {
         pos += lines[i].length + 1
       }
-      textarea.focus()
+
+      const targetTop = Math.max(0, measureScrollTopForPosition(textarea, content, pos))
+      const maxScrollTop = Math.max(0, textarea.scrollHeight - textarea.clientHeight)
+      const nextScrollTop = Math.min(targetTop, maxScrollTop)
+
+      try {
+        textarea.focus({ preventScroll: true })
+      } catch {
+        textarea.focus()
+      }
       textarea.setSelectionRange(pos, pos)
+      textarea.scrollTop = nextScrollTop
+      syncScroll()
+      requestAnimationFrame(() => {
+        if (!textareaRef.current) return
+        textareaRef.current.scrollTop = nextScrollTop
+        syncScroll()
+      })
+      setTimeout(() => {
+        if (!textareaRef.current) return
+        textareaRef.current.scrollTop = nextScrollTop
+        syncScroll()
+      }, 0)
     }
-  }), [content, syncScroll])
+  }), [content, syncScroll, measureScrollTopForPosition])
 
   // Auto-save with debounce
   useEffect(() => {
