@@ -38,38 +38,31 @@ const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisi
 
   const measureScrollTopForPosition = useCallback((textarea, text, position) => {
     const clampedPosition = Math.max(0, Math.min(position, text.length))
-    const computedStyle = window.getComputedStyle(textarea)
-    const mirror = document.createElement('div')
+    const cs = window.getComputedStyle(textarea)
 
+    // Calculate the exact content width of the textarea (excluding padding, border, scrollbar)
+    const contentWidth = textarea.clientWidth
+      - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+
+    const mirror = document.createElement('div')
     mirror.style.position = 'absolute'
     mirror.style.visibility = 'hidden'
-    mirror.style.pointerEvents = 'none'
-    mirror.style.zIndex = '-1'
-    mirror.style.top = '0'
     mirror.style.left = '-99999px'
-    mirror.style.boxSizing = computedStyle.boxSizing
-    mirror.style.width = `${textarea.clientWidth}px`
-    mirror.style.paddingTop = computedStyle.paddingTop
-    mirror.style.paddingRight = computedStyle.paddingRight
-    mirror.style.paddingBottom = computedStyle.paddingBottom
-    mirror.style.paddingLeft = computedStyle.paddingLeft
-    mirror.style.borderTopWidth = computedStyle.borderTopWidth
-    mirror.style.borderRightWidth = computedStyle.borderRightWidth
-    mirror.style.borderBottomWidth = computedStyle.borderBottomWidth
-    mirror.style.borderLeftWidth = computedStyle.borderLeftWidth
-    mirror.style.borderTopStyle = computedStyle.borderTopStyle
-    mirror.style.borderRightStyle = computedStyle.borderRightStyle
-    mirror.style.borderBottomStyle = computedStyle.borderBottomStyle
-    mirror.style.borderLeftStyle = computedStyle.borderLeftStyle
-    mirror.style.fontFamily = computedStyle.fontFamily
-    mirror.style.fontSize = computedStyle.fontSize
-    mirror.style.fontWeight = computedStyle.fontWeight
-    mirror.style.fontStyle = computedStyle.fontStyle
-    mirror.style.letterSpacing = computedStyle.letterSpacing
-    mirror.style.lineHeight = computedStyle.lineHeight
-    mirror.style.textTransform = computedStyle.textTransform
-    mirror.style.textIndent = computedStyle.textIndent
-    mirror.style.tabSize = computedStyle.tabSize
+    mirror.style.top = '0'
+    mirror.style.boxSizing = 'content-box'
+    mirror.style.width = contentWidth + 'px'
+    mirror.style.padding = '0'
+    mirror.style.border = 'none'
+    mirror.style.fontFamily = cs.fontFamily
+    mirror.style.fontSize = cs.fontSize
+    mirror.style.fontWeight = cs.fontWeight
+    mirror.style.fontStyle = cs.fontStyle
+    mirror.style.letterSpacing = cs.letterSpacing
+    mirror.style.wordSpacing = cs.wordSpacing
+    mirror.style.lineHeight = cs.lineHeight
+    mirror.style.textTransform = cs.textTransform
+    mirror.style.textIndent = cs.textIndent
+    mirror.style.tabSize = cs.tabSize
     mirror.style.whiteSpace = 'pre-wrap'
     mirror.style.wordBreak = 'break-word'
     mirror.style.overflowWrap = 'break-word'
@@ -99,8 +92,9 @@ const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisi
         pos += lines[i].length + 1
       }
 
-      const margin = 4
-      const targetTop = Math.max(0, measureScrollTopForPosition(textarea, content, pos) - margin)
+      const rawTop = measureScrollTopForPosition(textarea, content, pos)
+      const margin = 4 + rawTop * 0.00075
+      const targetTop = Math.max(0, rawTop - margin)
       const maxScrollTop = Math.max(0, textarea.scrollHeight - textarea.clientHeight)
       const nextScrollTop = Math.min(targetTop, maxScrollTop)
 
