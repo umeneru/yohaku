@@ -99,7 +99,8 @@ const TextEditor = forwardRef(function TextEditor({ onToggleOutline, outlineVisi
         pos += lines[i].length + 1
       }
 
-      const targetTop = Math.max(0, measureScrollTopForPosition(textarea, content, pos))
+      const margin = 4
+      const targetTop = Math.max(0, measureScrollTopForPosition(textarea, content, pos) - margin)
       const maxScrollTop = Math.max(0, textarea.scrollHeight - textarea.clientHeight)
       const nextScrollTop = Math.min(targetTop, maxScrollTop)
 
