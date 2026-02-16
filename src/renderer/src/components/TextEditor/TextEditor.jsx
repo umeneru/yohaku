@@ -12,6 +12,8 @@ const TextEditor = forwardRef(function TextEditor(props, ref) {
   const activeMarkRef = useRef(null)
   const [showSearch, setShowSearch] = useState(false)
   const urlOverlayRef = useRef(null)
+  const containerRef = useRef(null)
+  const [bottomPadding, setBottomPadding] = useState(16)
 
   const {
     searchTerm, setSearchTerm,
@@ -118,6 +120,39 @@ const TextEditor = forwardRef(function TextEditor(props, ref) {
       }, 0)
     }
   }), [content, syncScroll, measureScrollTopForPosition])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const ro = new ResizeObserver(([entry]) => {
+      const h = entry.contentRect.height
+      setBottomPadding(Math.max(16, Math.floor(h * 0.5)))
+    })
+    ro.observe(container)
+    return () => ro.disconnect()
+  }, [])
+
+  const paddingStyle = useMemo(() => `0px 16px ${bottomPadding}px 16px`, [bottomPadding])
+
+  const ensureCursorMargin = useCallback(() => {
+    requestAnimationFrame(() => {
+      const ta = textareaRef.current
+      if (!ta) return
+      const pos = ta.selectionStart
+      const cursorTop = measureScrollTopForPosition(ta, ta.value, pos)
+      const cs = window.getComputedStyle(ta)
+      const lineHeight = parseFloat(cs.lineHeight)
+      const paddingTop = parseFloat(cs.paddingTop)
+      const cursorBottom = cursorTop + lineHeight + paddingTop
+      const visibleBottom = ta.scrollTop + ta.clientHeight
+      const margin = lineHeight * 2
+
+      if (cursorBottom > visibleBottom - margin) {
+        ta.scrollTop = cursorBottom - ta.clientHeight + margin
+        syncScroll()
+      }
+    })
+  }, [measureScrollTopForPosition, syncScroll])
 
   // Auto-save with debounce
   useEffect(() => {
@@ -313,22 +348,24 @@ const TextEditor = forwardRef(function TextEditor(props, ref) {
           onClose={() => setShowSearch(false)}
         />
       )}
-      <div className={styles.highlightContainer}>
+      <div ref={containerRef} className={styles.highlightContainer}>
         {showHighlight && (
-          <div ref={backdropRef} className={styles.backdrop} aria-hidden="true">
+          <div ref={backdropRef} className={styles.backdrop} style={{ padding: paddingStyle }} aria-hidden="true">
             {highlightedContent}
           </div>
         )}
         {urlOverlayContent && (
-          <div ref={urlOverlayRef} className={styles.urlOverlay} aria-hidden="true">
+          <div ref={urlOverlayRef} className={styles.urlOverlay} style={{ padding: paddingStyle }} aria-hidden="true">
             {urlOverlayContent}
           </div>
         )}
         <textarea
           ref={textareaRef}
           className={`${styles.textarea}${showHighlight || urlMatches.length > 0 ? ` ${styles.textareaTransparent}` : ''}`}
+          style={{ padding: paddingStyle }}
           value={content}
           onChange={handleChange}
+          onInput={ensureCursorMargin}
           onScroll={syncScroll}
           spellCheck={false}
         />
