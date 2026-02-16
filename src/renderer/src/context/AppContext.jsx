@@ -12,7 +12,8 @@ const initialState = {
   isDirty: false,
   refreshSignal: 0,
   headingChar: '#',
-  sidebarLayout: 'default'
+  sidebarLayout: 'default',
+  treeDefaultOpen: true
 }
 
 function appReducer(state, action) {
@@ -23,7 +24,8 @@ function appReducer(state, action) {
         rootPath: action.rootPath,
         tree: action.tree,
         headingChar: state.headingChar,
-        sidebarLayout: state.sidebarLayout
+        sidebarLayout: state.sidebarLayout,
+        treeDefaultOpen: state.treeDefaultOpen
       }
     }
     case 'UPDATE_TREE': {
@@ -64,6 +66,9 @@ function appReducer(state, action) {
     }
     case 'SET_SIDEBAR_LAYOUT': {
       return { ...state, sidebarLayout: action.sidebarLayout }
+    }
+    case 'SET_TREE_DEFAULT_OPEN': {
+      return { ...state, treeDefaultOpen: action.treeDefaultOpen }
     }
     default:
       return state

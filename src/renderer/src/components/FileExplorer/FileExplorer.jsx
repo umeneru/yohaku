@@ -10,7 +10,7 @@ import styles from './FileExplorer.module.css'
 import { join as pathJoin } from './pathUtil'
 
 function FileExplorer() {
-  const { rootPath, tree } = useAppState()
+  const { rootPath, tree, treeDefaultOpen } = useAppState()
   const dispatch = useAppDispatch()
   const [contextMenu, setContextMenu] = useState(null)
   const [inputDialog, setInputDialog] = useState(null)
@@ -50,8 +50,27 @@ function FileExplorer() {
   const openDirectory = async (dirPath) => {
     try {
       window.electronAPI.stopWatcher()
-      const treeData = await window.electronAPI.readDirectory(dirPath)
+      const [treeData, lastFilePath] = await Promise.all([
+        treeDefaultOpen
+          ? window.electronAPI.readDirectoryRecursive(dirPath)
+          : window.electronAPI.readDirectory(dirPath),
+        window.electronAPI.getLastFile(dirPath)
+      ])
+
+      let lastFileContent = null
+      if (lastFilePath) {
+        try {
+          lastFileContent = await window.electronAPI.readFile(lastFilePath)
+        } catch {
+          // file may have been deleted, skip
+        }
+      }
+
       dispatch({ type: 'SET_ROOT', rootPath: dirPath, tree: treeData })
+      if (lastFileContent !== null) {
+        dispatch({ type: 'OPEN_FILE', filePath: lastFilePath, content: lastFileContent })
+      }
+
       const newHistory = await window.electronAPI.addToDirectoryHistory(dirPath)
       setHistory(newHistory)
       window.electronAPI.startWatcher(dirPath)
@@ -208,7 +227,9 @@ function FileExplorer() {
 
   const refreshTree = async () => {
     if (!rootPath) return
-    const treeData = await window.electronAPI.readDirectory(rootPath)
+    const treeData = treeDefaultOpen
+      ? await window.electronAPI.readDirectoryRecursive(rootPath)
+      : await window.electronAPI.readDirectory(rootPath)
     dispatch({ type: 'REFRESH_TREE', tree: treeData })
   }
 

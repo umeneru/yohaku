@@ -5,8 +5,9 @@ import { constants } from 'fs'
 
 const HISTORY_FILE = join(app.getPath('userData'), 'directory-history.json')
 const SETTINGS_FILE = join(app.getPath('userData'), 'settings.json')
+const LAST_FILES_FILE = join(app.getPath('userData'), 'last-opened-files.json')
 
-const DEFAULT_SETTINGS = { hotkey: 'CommandOrControl+Shift+Y', headingChar: '#', sidebarLayout: 'default', outlineVisible: true }
+const DEFAULT_SETTINGS = { hotkey: 'CommandOrControl+Shift+Y', headingChar: '#', sidebarLayout: 'default', outlineVisible: true, treeDefaultOpen: true }
 
 async function loadSettings() {
   try {
@@ -49,6 +50,33 @@ async function removeFromHistory(dirPath) {
   return newHistory
 }
 
+async function loadLastFiles() {
+  try {
+    const data = await readFile(LAST_FILES_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch {
+    return {}
+  }
+}
+
+async function saveLastFile(dirPath, filePath) {
+  const lastFiles = await loadLastFiles()
+  lastFiles[dirPath] = filePath
+  await writeFile(LAST_FILES_FILE, JSON.stringify(lastFiles, null, 2), 'utf-8')
+}
+
+async function getLastFile(dirPath) {
+  const lastFiles = await loadLastFiles()
+  const filePath = lastFiles[dirPath] || null
+  if (!filePath) return null
+  try {
+    await access(filePath, constants.F_OK)
+    return filePath
+  } catch {
+    return null
+  }
+}
+
 async function buildTree(dirPath) {
   const entries = await readdir(dirPath, { withFileTypes: true })
   const items = []
@@ -62,6 +90,38 @@ async function buildTree(dirPath) {
         path: fullPath,
         isDirectory: true,
         children: []
+      })
+    } else {
+      items.push({
+        name: entry.name,
+        path: fullPath,
+        isDirectory: false
+      })
+    }
+  }
+
+  items.sort((a, b) => {
+    if (a.isDirectory === b.isDirectory) return a.name.localeCompare(b.name)
+    return a.isDirectory ? -1 : 1
+  })
+
+  return items
+}
+
+async function buildTreeRecursive(dirPath) {
+  const entries = await readdir(dirPath, { withFileTypes: true })
+  const items = []
+
+  for (const entry of entries) {
+    if (entry.name.startsWith('.')) continue
+    const fullPath = join(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      const children = await buildTreeRecursive(fullPath)
+      items.push({
+        name: entry.name,
+        path: fullPath,
+        isDirectory: true,
+        children
       })
     } else {
       items.push({
@@ -163,6 +223,14 @@ export function registerIpcHandlers() {
     }
   })
 
+  ipcMain.handle('fs:readDirectoryRecursive', async (_event, dirPath) => {
+    try {
+      return await buildTreeRecursive(dirPath)
+    } catch (err) {
+      throw new Error(`Failed to read directory: ${err.message}`)
+    }
+  })
+
   ipcMain.handle('fs:readFile', async (_event, filePath) => {
     try {
       return await readFile(filePath, 'utf-8')
@@ -254,6 +322,14 @@ export function registerIpcHandlers() {
     if (typeof url === 'string' && /^https?:\/\//.test(url)) {
       await shell.openExternal(url)
     }
+  })
+
+  ipcMain.handle('lastFile:get', async (_event, dirPath) => {
+    return await getLastFile(dirPath)
+  })
+
+  ipcMain.handle('lastFile:set', async (_event, dirPath, filePath) => {
+    await saveLastFile(dirPath, filePath)
   })
 
   ipcMain.handle('fs:checkDirectoryEmpty', async (_event, dirPath) => {

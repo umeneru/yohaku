@@ -32,6 +32,7 @@ function Settings({ onClose }) {
   const [headingChar, setHeadingChar] = useState('#')
   const [sidebarLayout, setSidebarLayout] = useState('default')
   const [outlineVisible, setOutlineVisible] = useState(true)
+  const [treeDefaultOpen, setTreeDefaultOpen] = useState(true)
   const [loading, setLoading] = useState(true)
   const savedRef = useRef(false)
   const inputRef = useRef(null)
@@ -46,6 +47,7 @@ function Settings({ onClose }) {
       setHeadingChar(settings.headingChar || '#')
       setSidebarLayout(settings.sidebarLayout || 'default')
       setOutlineVisible(settings.outlineVisible !== undefined ? settings.outlineVisible : true)
+      setTreeDefaultOpen(settings.treeDefaultOpen !== undefined ? settings.treeDefaultOpen : true)
       setLoading(false)
     }
     load()
@@ -68,11 +70,12 @@ function Settings({ onClose }) {
 
   const handleSave = async () => {
     savedRef.current = true
-    const settings = { hotkey, headingChar, sidebarLayout, outlineVisible }
+    const settings = { hotkey, headingChar, sidebarLayout, outlineVisible, treeDefaultOpen }
     await window.electronAPI.saveSettings(settings)
     window.electronAPI.updateHotkey(hotkey)
     dispatch({ type: 'SET_HEADING_CHAR', headingChar })
     dispatch({ type: 'SET_SIDEBAR_LAYOUT', sidebarLayout })
+    dispatch({ type: 'SET_TREE_DEFAULT_OPEN', treeDefaultOpen })
     onClose()
   }
 
@@ -123,6 +126,20 @@ function Settings({ onClose }) {
           </select>
           <div className={styles.hint}>
             Whether to show the heading outline panel when the app starts.
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Tree Default State</label>
+          <select
+            className={styles.input}
+            value={treeDefaultOpen ? 'true' : 'false'}
+            onChange={(e) => setTreeDefaultOpen(e.target.value === 'true')}
+          >
+            <option value="true">Open</option>
+            <option value="false">Closed</option>
+          </select>
+          <div className={styles.hint}>
+            Whether to expand the file tree by default when opening a directory.
           </div>
         </div>
         <div className={styles.field}>

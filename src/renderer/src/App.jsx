@@ -25,6 +25,9 @@ function AppContent() {
       if (settings.outlineVisible !== undefined) {
         setOutlineVisible(settings.outlineVisible)
       }
+      if (settings.treeDefaultOpen !== undefined) {
+        dispatch({ type: 'SET_TREE_DEFAULT_OPEN', treeDefaultOpen: settings.treeDefaultOpen })
+      }
     })
   }, [dispatch])
 

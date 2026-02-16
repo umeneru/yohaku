@@ -3,9 +3,9 @@ import { useAppState, useAppDispatch } from '../../context/AppContext'
 import styles from './TreeNode.module.css'
 
 function TreeNode({ node, depth }) {
-  const [expanded, setExpanded] = useState(false)
+  const { currentFile, isDirty, refreshSignal, treeDefaultOpen, rootPath } = useAppState()
+  const [expanded, setExpanded] = useState(node.isDirectory && treeDefaultOpen)
   const [children, setChildren] = useState(node.children || [])
-  const { currentFile, isDirty, refreshSignal } = useAppState()
   const dispatch = useAppDispatch()
   const initialMount = useRef(true)
 
@@ -35,6 +35,9 @@ function TreeNode({ node, depth }) {
       }
       const content = await window.electronAPI.readFile(node.path)
       dispatch({ type: 'OPEN_FILE', filePath: node.path, content })
+      if (rootPath) {
+        window.electronAPI.setLastFile(rootPath, node.path)
+      }
     }
   }
 

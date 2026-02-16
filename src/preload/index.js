@@ -14,6 +14,7 @@ ipcRenderer.on('watcher:changed', () => {
 contextBridge.exposeInMainWorld('electronAPI', {
   openDirectoryDialog: () => ipcRenderer.invoke('dialog:openDirectory'),
   readDirectory: (dirPath) => ipcRenderer.invoke('fs:readDirectory', dirPath),
+  readDirectoryRecursive: (dirPath) => ipcRenderer.invoke('fs:readDirectoryRecursive', dirPath),
   readFile: (filePath) => ipcRenderer.invoke('fs:readFile', filePath),
   writeFile: (filePath, content) => ipcRenderer.invoke('fs:writeFile', filePath, content),
   createFile: (filePath) => ipcRenderer.invoke('fs:createFile', filePath),
@@ -27,6 +28,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDirectoryHistory: () => ipcRenderer.invoke('history:get'),
   addToDirectoryHistory: (dirPath) => ipcRenderer.invoke('history:add', dirPath),
   removeFromDirectoryHistory: (dirPath) => ipcRenderer.invoke('history:remove', dirPath),
+  getLastFile: (dirPath) => ipcRenderer.invoke('lastFile:get', dirPath),
+  setLastFile: (dirPath, filePath) => ipcRenderer.invoke('lastFile:set', dirPath, filePath),
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:set', settings),
   updateHotkey: (hotkey) => ipcRenderer.send('settings:updateHotkey', hotkey),
