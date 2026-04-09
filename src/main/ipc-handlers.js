@@ -151,6 +151,13 @@ const BINARY_EXTENSIONS = new Set([
 ])
 
 const MAX_SEARCH_RESULTS = 500
+const MIN_ZOOM_FACTOR = 0.5
+const MAX_ZOOM_FACTOR = 3.0
+const ZOOM_STEP = 0.1
+
+function clampZoomFactor(value) {
+  return Math.max(MIN_ZOOM_FACTOR, Math.min(MAX_ZOOM_FACTOR, value))
+}
 
 async function searchInDirectory(rootPath, keyword) {
   const results = []
@@ -340,5 +347,34 @@ export function registerIpcHandlers() {
     } catch (err) {
       throw new Error(`Failed to check directory: ${err.message}`)
     }
+  })
+
+  ipcMain.handle('view:getZoomFactor', async (event) => {
+    return event.sender.getZoomFactor()
+  })
+
+  ipcMain.handle('view:setZoomFactor', async (event, factor) => {
+    const target = Number.isFinite(factor) ? clampZoomFactor(factor) : 1
+    event.sender.setZoomFactor(target)
+    return target
+  })
+
+  ipcMain.handle('view:zoomIn', async (event) => {
+    const current = event.sender.getZoomFactor()
+    const next = clampZoomFactor(current + ZOOM_STEP)
+    event.sender.setZoomFactor(next)
+    return next
+  })
+
+  ipcMain.handle('view:zoomOut', async (event) => {
+    const current = event.sender.getZoomFactor()
+    const next = clampZoomFactor(current - ZOOM_STEP)
+    event.sender.setZoomFactor(next)
+    return next
+  })
+
+  ipcMain.handle('view:resetZoom', async (event) => {
+    event.sender.setZoomFactor(1)
+    return 1
   })
 }

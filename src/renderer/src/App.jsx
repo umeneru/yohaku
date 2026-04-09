@@ -31,6 +31,45 @@ function AppContent() {
     })
   }, [dispatch])
 
+  useEffect(() => {
+    const handleZoomKeyDown = (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return
+
+      const isZoomIn = e.key === '+' || e.key === '=' || e.code === 'NumpadAdd'
+      const isZoomOut = e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract'
+      const isZoomReset = e.key === '0' || e.code === 'Digit0' || e.code === 'Numpad0'
+
+      if (isZoomIn) {
+        e.preventDefault()
+        window.electronAPI.zoomIn()
+      } else if (isZoomOut) {
+        e.preventDefault()
+        window.electronAPI.zoomOut()
+      } else if (isZoomReset) {
+        e.preventDefault()
+        window.electronAPI.resetZoom()
+      }
+    }
+
+    const handleZoomWheel = (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return
+      e.preventDefault()
+      if (e.deltaY < 0) {
+        window.electronAPI.zoomIn()
+      } else if (e.deltaY > 0) {
+        window.electronAPI.zoomOut()
+      }
+    }
+
+    window.addEventListener('keydown', handleZoomKeyDown)
+    window.addEventListener('wheel', handleZoomWheel, { passive: false })
+
+    return () => {
+      window.removeEventListener('keydown', handleZoomKeyDown)
+      window.removeEventListener('wheel', handleZoomWheel)
+    }
+  }, [])
+
   const handleResize = useCallback((clientX) => {
     if (sidebarLayout === 'swap') {
       const newWidth = Math.max(150, Math.min(window.innerWidth - clientX, 600))
