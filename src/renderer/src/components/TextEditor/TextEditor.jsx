@@ -11,6 +11,7 @@ const TextEditor = forwardRef(function TextEditor(props, ref) {
   const backdropRef = useRef(null)
   const activeMarkRef = useRef(null)
   const [showSearch, setShowSearch] = useState(false)
+  const [isCtrlPressed, setIsCtrlPressed] = useState(false)
   const urlOverlayRef = useRef(null)
   const containerRef = useRef(null)
   const [bottomPadding, setBottomPadding] = useState(16)
@@ -172,14 +173,23 @@ const TextEditor = forwardRef(function TextEditor(props, ref) {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (e.key === 'Control') setIsCtrlPressed(true)
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault()
         setShowSearch((v) => !v)
       }
     }
+    const handleKeyUp = (e) => {
+      if (e.key === 'Control') setIsCtrlPressed(false)
+    }
+    const handleBlur = () => setIsCtrlPressed(false)
     window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleBlur)
     }
   }, [])
 
@@ -355,7 +365,12 @@ const TextEditor = forwardRef(function TextEditor(props, ref) {
           </div>
         )}
         {urlOverlayContent && (
-          <div ref={urlOverlayRef} className={styles.urlOverlay} style={{ padding: paddingStyle }} aria-hidden="true">
+          <div
+            ref={urlOverlayRef}
+            className={`${styles.urlOverlay}${isCtrlPressed ? ` ${styles.urlOverlayInteractive}` : ''}`}
+            style={{ padding: paddingStyle }}
+            aria-hidden="true"
+          >
             {urlOverlayContent}
           </div>
         )}

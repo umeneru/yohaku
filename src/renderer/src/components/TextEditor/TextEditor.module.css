@@ -116,8 +116,11 @@
 
 .urlLink {
   color: transparent;
-  pointer-events: auto;
   cursor: text;
+}
+
+.urlOverlayInteractive .urlLink {
+  pointer-events: auto;
 }
 
 .urlLink:hover {
