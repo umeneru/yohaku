@@ -62,12 +62,14 @@ export function findTextMatches(doc, term) {
   return matches
 }
 
+export function normalizeMatchIndex(index, matchCount) {
+  if (index < 0 || matchCount === 0) return -1
+  return Math.min(index, matchCount - 1)
+}
+
 function createSearchState(doc, term, activeIndex) {
   const matches = findTextMatches(doc, term)
-  const active = matches.length === 0 || activeIndex < 0
-    ? -1
-    : Math.min(activeIndex, matches.length - 1)
-  return { term, active, matches }
+  return { term, active: normalizeMatchIndex(activeIndex, matches.length), matches }
 }
 
 export const RichSearch = Extension.create({

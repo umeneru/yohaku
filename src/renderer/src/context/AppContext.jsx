@@ -14,7 +14,8 @@ const initialState = {
   headingChar: '#',
   sidebarLayout: 'default',
   treeDefaultOpen: true,
-  markdownHeadings: []
+  markdownHeadings: [],
+  fileLoadId: 0
 }
 
 function appReducer(state, action) {
@@ -26,7 +27,8 @@ function appReducer(state, action) {
         tree: action.tree,
         headingChar: state.headingChar,
         sidebarLayout: state.sidebarLayout,
-        treeDefaultOpen: state.treeDefaultOpen
+        treeDefaultOpen: state.treeDefaultOpen,
+        fileLoadId: state.fileLoadId
       }
     }
     case 'UPDATE_TREE': {
@@ -39,7 +41,8 @@ function appReducer(state, action) {
         content: action.content,
         savedContent: action.content,
         isDirty: false,
-        markdownHeadings: []
+        markdownHeadings: [],
+        fileLoadId: state.fileLoadId + 1
       }
     }
     case 'UPDATE_CONTENT': {

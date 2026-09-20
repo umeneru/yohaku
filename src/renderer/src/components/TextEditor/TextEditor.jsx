@@ -20,10 +20,10 @@ const FileEditor = forwardRef(function FileEditor({ filePath, initialContent }, 
 })
 
 const TextEditor = forwardRef(function TextEditor(props, ref) {
-  const { currentFile, content } = useAppState()
+  const { currentFile, content, fileLoadId } = useAppState()
   return (
     <FileEditor
-      key={currentFile || 'no-file'}
+      key={`${currentFile || 'no-file'}:${fileLoadId}`}
       ref={ref}
       filePath={currentFile}
       initialContent={content}

@@ -1,7 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { Schema } from '@tiptap/pm/model'
-import { findTextMatches } from '../../src/renderer/src/components/TextEditor/richSearch.mjs'
+import {
+  findTextMatches,
+  normalizeMatchIndex
+} from '../../src/renderer/src/components/TextEditor/richSearch.mjs'
 
 const schema = new Schema({
   nodes: {
@@ -13,6 +16,12 @@ const schema = new Schema({
   marks: {
     strong: {}
   }
+})
+
+test('一致件数が減った場合は選択indexを有効範囲へ補正する', () => {
+  assert.equal(normalizeMatchIndex(4, 2), 1)
+  assert.equal(normalizeMatchIndex(0, 0), -1)
+  assert.equal(normalizeMatchIndex(-1, 3), -1)
 })
 
 test('mark境界内は検索し、blockとhard breakはまたがない', () => {

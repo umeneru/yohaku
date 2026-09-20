@@ -26,6 +26,19 @@ test('基本MarkdownとGFMをリッチ編集対象にする', () => {
   assert.deepEqual(assessMarkdownSupport(content), { supported: true, reason: null })
 })
 
+test('コード内の対象外構文らしい文字列は通常のMarkdownとして扱う', () => {
+  const content = `Inline \`[[wiki]] [^1] ::: $$\` stays code.
+
+\`\`\`text
+[[wiki]]
+[^1]: footnote
+:::directive
+$$
+\`\`\`
+`
+  assert.deepEqual(assessMarkdownSupport(content), { supported: true, reason: null })
+})
+
 test('データ損失の恐れがある対象外構文をフォールバックする', () => {
   const cases = [
     ['---\ntitle: Note\n---\n\nBody', 'Front Matter'],

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { findTextMatches } from '../components/TextEditor/richSearch.mjs'
+import { findTextMatches, normalizeMatchIndex } from '../components/TextEditor/richSearch.mjs'
 
 function replaceMatch(transaction, state, match, replacement) {
   if (!replacement) return transaction.delete(match.from, match.to)
@@ -12,7 +12,7 @@ function replaceMatch(transaction, state, match, replacement) {
 }
 
 export function useRichSearchReplace(editor, revision) {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTermState] = useState('')
   const [replaceTerm, setReplaceTerm] = useState('')
   const [matchIndex, setMatchIndex] = useState(-1)
 
@@ -21,11 +21,18 @@ export function useRichSearchReplace(editor, revision) {
     [editor, searchTerm, revision]
   )
 
-  useEffect(() => {
-    if (!editor) return
+  const setSearchTerm = useCallback((value) => {
+    setSearchTermState(value)
     setMatchIndex(-1)
-    editor.commands.setRichSearch(searchTerm, -1)
-  }, [editor, searchTerm])
+    editor?.commands.setRichSearch(value, -1)
+  }, [editor])
+
+  useEffect(() => {
+    const normalized = normalizeMatchIndex(matchIndex, matches.length)
+    if (!editor || normalized === matchIndex) return
+    setMatchIndex(normalized)
+    editor.commands.setRichSearch(searchTerm, normalized)
+  }, [editor, matchIndex, matches.length, searchTerm])
 
   const findNext = useCallback(() => {
     if (!editor || matches.length === 0) {
@@ -44,7 +51,7 @@ export function useRichSearchReplace(editor, revision) {
     editor.view.dispatch(transaction)
 
     const nextMatches = findTextMatches(editor.state.doc, searchTerm)
-    const next = nextMatches.length === 0 ? -1 : Math.min(matchIndex, nextMatches.length - 1)
+    const next = normalizeMatchIndex(matchIndex, nextMatches.length)
     setMatchIndex(next)
     editor.commands.setRichSearch(searchTerm, next)
   }, [editor, matchIndex, matches, replaceTerm, searchTerm])
