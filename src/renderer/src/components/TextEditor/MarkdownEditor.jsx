@@ -89,14 +89,27 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
         if (!imageFile) return false
 
         event.preventDefault()
+        const selection = view.state.selection
+        const document = view.state.doc
+        view.setProps({ editable: () => false })
+
         imageFile.arrayBuffer()
           .then((bytes) => window.electronAPI.savePastedImage(currentFile, new Uint8Array(bytes)))
           .then((src) => {
             if (view.isDestroyed || !src) return
+            if (!view.state.doc.eq(document)) {
+              window.alert(`The document changed before the image was inserted. The image was saved as ${src}.`)
+              return
+            }
             const imageNode = view.state.schema.nodes.image.create({ src, alt: 'pasted image' })
-            view.dispatch(view.state.tr.replaceSelectionWith(imageNode).scrollIntoView())
+            view.dispatch(
+              view.state.tr.replaceWith(selection.from, selection.to, imageNode).scrollIntoView()
+            )
           })
           .catch((error) => window.alert(`Failed to paste image: ${error.message || error}`))
+          .finally(() => {
+            if (!view.isDestroyed) view.setProps({ editable: () => true })
+          })
         return true
       }
     },

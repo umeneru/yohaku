@@ -14,7 +14,7 @@ const initialState = {
   headingChar: '#',
   sidebarLayout: 'default',
   treeDefaultOpen: true,
-  markdownHeadings: [],
+  markdownHeadings: null,
   fileLoadId: 0
 }
 
@@ -41,7 +41,7 @@ function appReducer(state, action) {
         content: action.content,
         savedContent: action.content,
         isDirty: false,
-        markdownHeadings: [],
+        markdownHeadings: null,
         fileLoadId: state.fileLoadId + 1
       }
     }

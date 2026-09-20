@@ -59,7 +59,7 @@ function HeadingOutline({ editorRef }) {
   const [collapsed, setCollapsed] = useState(new Set())
 
   const tree = useMemo(() => {
-    const headings = isMarkdownFile(currentFile)
+    const headings = isMarkdownFile(currentFile) && markdownHeadings !== null
       ? markdownHeadings
       : parseHeadings(content, headingChar)
     return buildHeadingTree(headings)
