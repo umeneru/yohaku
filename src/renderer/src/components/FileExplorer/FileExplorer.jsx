@@ -199,7 +199,7 @@ function FileExplorer() {
 
     try {
       if (type === 'file') {
-        if (!name.includes('.')) name += '.txt'
+        if (!name.includes('.')) name += '.md'
         const filePath = pathJoin(targetDir, name)
         console.log('Creating file:', filePath)
         await window.electronAPI.createFile(filePath)

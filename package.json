@@ -6,11 +6,22 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "test": "node --test test/markdown/*.test.mjs",
     "preview": "electron-vite preview",
     "dist": "electron-vite build && electron-builder --config electron-builder.yml",
     "dist:win": "electron-vite build && electron-builder --config electron-builder.yml --win"
   },
   "dependencies": {
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-table": "^3.31.3",
+    "@tiptap/extension-task-item": "^3.31.3",
+    "@tiptap/extension-task-list": "^3.31.3",
+    "@tiptap/markdown": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "marked": "^17.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
