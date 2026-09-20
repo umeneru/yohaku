@@ -14,6 +14,10 @@
 - 2カラムレイアウト（ファイルエクスプローラー + テキストエディタ）
 - 自動保存（1秒デバウンス）
 - テキスト検索と置換（Ctrl+F）
+- `.md` / `.markdown` ファイルのリッチMarkdown編集
+  - 書式ツールバー、GFMテーブル、タスクリスト
+  - 画像貼り付け（ローカルの `assets/` ディレクトリに保存）
+  - 未対応構文はデータ損失を防ぐため自動的にプレーンテキスト編集へ切り替え
 - ディレクトリ内キーワード検索
 - ディレクトリのワークスペース設定
 - グローバルホットキー対応（設定可能）
@@ -57,6 +61,7 @@ npm run dist:win       # Windows用配布パッケージ作成
 
 - **Electron** - デスクトップアプリケーションフレームワーク
 - **React 19** - UIライブラリ
+- **Tiptap** - Markdownリッチエディタ
 - **electron-vite** - ホットリロード対応ビルドツール
 - **CSS Modules** - スコープ付きスタイリング
 
@@ -70,7 +75,7 @@ src/
     └── src/
         ├── components/
         │   ├── FileExplorer/   # ファイルツリー、検索、コンテキストメニュー
-        │   ├── TextEditor/     # エディタ、検索バー
+        │   ├── TextEditor/     # プレーンテキスト/Markdownエディタ、ツールバー、検索バー
         │   ├── HeadingOutline/ # 見出しアウトラインサイドバー
         │   └── Resizer/        # カラムリサイズ
         ├── context/            # AppContext（useReducer + Context API）

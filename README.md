@@ -14,6 +14,10 @@ A minimal text editor.
 - Two-column layout (file explorer + text editor)
 - Auto-save (1-second debounce)
 - Text search and replace (Ctrl+F)
+- Rich Markdown editing for `.md` / `.markdown` files
+  - Formatting toolbar, GFM tables and task lists
+  - Image paste support (saved to a local `assets/` directory)
+  - Automatic plain-text fallback for unsupported syntax to prevent data loss
 - Keyword search within directory
 - Directory workspace management
 - Global hotkey support (configurable)
@@ -57,6 +61,7 @@ npm run dist:win       # Create Windows distributable package
 
 - **Electron** - Desktop application framework
 - **React 19** - UI library
+- **Tiptap** - Rich Markdown editor
 - **electron-vite** - Build tool with hot reload
 - **CSS Modules** - Scoped styling
 
@@ -70,7 +75,7 @@ src/
     └── src/
         ├── components/
         │   ├── FileExplorer/   # File tree, search, context menu
-        │   ├── TextEditor/     # Editor, search bar
+        │   ├── TextEditor/     # Plain-text/Markdown editors, toolbar, search bar
         │   ├── HeadingOutline/ # Heading outline sidebar
         │   └── Resizer/        # Column resize
         ├── context/            # AppContext (useReducer + Context API)
