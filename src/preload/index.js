@@ -17,6 +17,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readDirectoryRecursive: (dirPath) => ipcRenderer.invoke('fs:readDirectoryRecursive', dirPath),
   readFile: (filePath) => ipcRenderer.invoke('fs:readFile', filePath),
   writeFile: (filePath, content) => ipcRenderer.invoke('fs:writeFile', filePath, content),
+  savePastedImage: (documentPath, bytes) => ipcRenderer.invoke('markdown:savePastedImage', documentPath, bytes),
+  readMarkdownImage: (documentPath, source) => ipcRenderer.invoke('markdown:readImage', documentPath, source),
   createFile: (filePath) => ipcRenderer.invoke('fs:createFile', filePath),
   createDirectory: (dirPath) => ipcRenderer.invoke('fs:createDirectory', dirPath),
   rename: (oldPath, newPath) => ipcRenderer.invoke('fs:rename', oldPath, newPath),

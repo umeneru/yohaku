@@ -13,7 +13,9 @@ const initialState = {
   refreshSignal: 0,
   headingChar: '#',
   sidebarLayout: 'default',
-  treeDefaultOpen: true
+  treeDefaultOpen: true,
+  markdownHeadings: [],
+  fileLoadId: 0
 }
 
 function appReducer(state, action) {
@@ -25,7 +27,8 @@ function appReducer(state, action) {
         tree: action.tree,
         headingChar: state.headingChar,
         sidebarLayout: state.sidebarLayout,
-        treeDefaultOpen: state.treeDefaultOpen
+        treeDefaultOpen: state.treeDefaultOpen,
+        fileLoadId: state.fileLoadId
       }
     }
     case 'UPDATE_TREE': {
@@ -37,7 +40,9 @@ function appReducer(state, action) {
         currentFile: action.filePath,
         content: action.content,
         savedContent: action.content,
-        isDirty: false
+        isDirty: false,
+        markdownHeadings: [],
+        fileLoadId: state.fileLoadId + 1
       }
     }
     case 'UPDATE_CONTENT': {
@@ -48,10 +53,11 @@ function appReducer(state, action) {
       }
     }
     case 'SAVE_FILE': {
+      if (action.filePath !== state.currentFile) return state
       return {
         ...state,
-        savedContent: state.content,
-        isDirty: false
+        savedContent: action.content,
+        isDirty: state.content !== action.content
       }
     }
     case 'REFRESH_TREE': {
@@ -69,6 +75,9 @@ function appReducer(state, action) {
     }
     case 'SET_TREE_DEFAULT_OPEN': {
       return { ...state, treeDefaultOpen: action.treeDefaultOpen }
+    }
+    case 'SET_MARKDOWN_HEADINGS': {
+      return { ...state, markdownHeadings: action.headings }
     }
     default:
       return state

@@ -1,22 +1,26 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useAppState } from '../../context/AppContext'
 import { parseHeadings, buildHeadingTree } from './parseHeadings'
+import { isMarkdownFile } from '../TextEditor/markdownSupport.mjs'
 import styles from './HeadingOutline.module.css'
 
 function HeadingNode({ node, editorRef, collapsed, onToggle }) {
+  const id = node.headingIndex ?? node.lineIndex
   const hasChildren = node.children.length > 0
-  const isCollapsed = collapsed.has(node.lineIndex)
+  const isCollapsed = collapsed.has(id)
 
   const handleClick = useCallback(() => {
-    if (editorRef.current?.scrollToLine) {
-      editorRef.current.scrollToLine(node.lineIndex)
+    if (node.headingIndex !== undefined) {
+      editorRef.current?.scrollToHeading?.(node.headingIndex)
+    } else {
+      editorRef.current?.scrollToLine?.(node.lineIndex)
     }
-  }, [editorRef, node.lineIndex])
+  }, [editorRef, node.headingIndex, node.lineIndex])
 
   const handleToggle = useCallback((e) => {
     e.stopPropagation()
-    onToggle(node.lineIndex)
-  }, [onToggle, node.lineIndex])
+    onToggle(id)
+  }, [onToggle, id])
 
   return (
     <>
@@ -39,7 +43,7 @@ function HeadingNode({ node, editorRef, collapsed, onToggle }) {
       </div>
       {hasChildren && !isCollapsed && node.children.map((child) => (
         <HeadingNode
-          key={child.lineIndex}
+          key={child.headingIndex ?? child.lineIndex}
           node={child}
           editorRef={editorRef}
           collapsed={collapsed}
@@ -51,13 +55,15 @@ function HeadingNode({ node, editorRef, collapsed, onToggle }) {
 }
 
 function HeadingOutline({ editorRef }) {
-  const { content, headingChar, sidebarLayout } = useAppState()
+  const { content, currentFile, headingChar, markdownHeadings, sidebarLayout } = useAppState()
   const [collapsed, setCollapsed] = useState(new Set())
 
   const tree = useMemo(() => {
-    const headings = parseHeadings(content, headingChar)
+    const headings = isMarkdownFile(currentFile)
+      ? markdownHeadings
+      : parseHeadings(content, headingChar)
     return buildHeadingTree(headings)
-  }, [content, headingChar])
+  }, [content, currentFile, headingChar, markdownHeadings])
 
   const handleToggle = useCallback((lineIndex) => {
     setCollapsed((prev) => {
@@ -78,7 +84,7 @@ function HeadingOutline({ editorRef }) {
         <div className={styles.treeContainer}>
           {tree.map((node) => (
             <HeadingNode
-              key={node.lineIndex}
+              key={node.headingIndex ?? node.lineIndex}
               node={node}
               editorRef={editorRef}
               collapsed={collapsed}

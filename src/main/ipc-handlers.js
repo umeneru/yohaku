@@ -1,6 +1,6 @@
-import { ipcMain, dialog, app, shell } from 'electron'
+import { ipcMain, dialog, app, shell, nativeImage } from 'electron'
 import { readdir, readFile, writeFile, mkdir, access, rename, unlink, rm } from 'fs/promises'
-import { join } from 'path'
+import { dirname, extname, isAbsolute, join, resolve } from 'path'
 import { constants } from 'fs'
 
 const HISTORY_FILE = join(app.getPath('userData'), 'directory-history.json')
@@ -159,6 +159,73 @@ function clampZoomFactor(value) {
   return Math.max(MIN_ZOOM_FACTOR, Math.min(MAX_ZOOM_FACTOR, value))
 }
 
+function isMarkdownPath(filePath) {
+  const extension = extname(filePath).toLowerCase()
+  return extension === '.md' || extension === '.markdown'
+}
+
+function imageFileName(date, suffix = 1) {
+  const timestamp = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+    '-',
+    String(date.getHours()).padStart(2, '0'),
+    String(date.getMinutes()).padStart(2, '0'),
+    String(date.getSeconds()).padStart(2, '0')
+  ].join('')
+  return `image-${timestamp}${suffix === 1 ? '' : `-${suffix}`}.png`
+}
+
+async function savePastedImage(documentPath, bytes) {
+  if (typeof documentPath !== 'string' || !isMarkdownPath(documentPath)) {
+    throw new Error('Images can only be pasted into Markdown files')
+  }
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) {
+    throw new Error('Clipboard image data is empty or invalid')
+  }
+
+  const image = nativeImage.createFromBuffer(Buffer.from(bytes))
+  if (image.isEmpty()) throw new Error('Clipboard image format is not supported')
+  const png = image.toPNG()
+  const assetsPath = join(dirname(documentPath), 'assets')
+  await mkdir(assetsPath, { recursive: true })
+
+  for (let suffix = 1; suffix <= 999; suffix++) {
+    const name = imageFileName(new Date(), suffix)
+    try {
+      await writeFile(join(assetsPath, name), png, { flag: 'wx' })
+      return `assets/${name}`
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error
+    }
+  }
+  throw new Error('Could not allocate a unique image file name')
+}
+
+function isUnsafeImageSource(source) {
+  return isAbsolute(source) ||
+    /^[a-z][a-z0-9+.-]*:/i.test(source) ||
+    /^[/\\]{2}/.test(source) ||
+    /^[a-z]:[\\/]/i.test(source)
+}
+
+function readMarkdownImage(documentPath, source) {
+  if (typeof documentPath !== 'string' || typeof source !== 'string' || !source) return null
+  if (isUnsafeImageSource(source)) return null
+
+  let decodedSource
+  try {
+    decodedSource = decodeURIComponent(source)
+  } catch {
+    return null
+  }
+  if (isUnsafeImageSource(decodedSource)) return null
+
+  const image = nativeImage.createFromPath(resolve(dirname(documentPath), decodedSource))
+  return image.isEmpty() ? null : image.toDataURL()
+}
+
 async function searchInDirectory(rootPath, keyword) {
   const results = []
   const lowerKeyword = keyword.toLowerCase()
@@ -251,6 +318,22 @@ export function registerIpcHandlers() {
       await writeFile(filePath, content, 'utf-8')
     } catch (err) {
       throw new Error(`Failed to save file: ${err.message}`)
+    }
+  })
+
+  ipcMain.handle('markdown:savePastedImage', async (_event, documentPath, bytes) => {
+    try {
+      return await savePastedImage(documentPath, bytes)
+    } catch (err) {
+      throw new Error(`Failed to save pasted image: ${err.message}`)
+    }
+  })
+
+  ipcMain.handle('markdown:readImage', async (_event, documentPath, source) => {
+    try {
+      return readMarkdownImage(documentPath, source)
+    } catch (err) {
+      throw new Error(`Failed to read Markdown image: ${err.message}`)
     }
   })
 
