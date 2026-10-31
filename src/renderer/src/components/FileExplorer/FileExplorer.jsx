@@ -6,6 +6,11 @@ import InputDialog from './InputDialog'
 import DirectoryPicker from './DirectoryPicker'
 import SearchPanel from './SearchPanel'
 import Settings from '../Settings/Settings'
+import {
+  forgetEditorViews,
+  relocateEditorViews,
+  setActiveRoot
+} from '../TextEditor/editorViewState.mjs'
 import styles from './FileExplorer.module.css'
 import { join as pathJoin } from './pathUtil'
 
@@ -66,6 +71,7 @@ function FileExplorer() {
         }
       }
 
+      setActiveRoot(dirPath)
       dispatch({ type: 'SET_ROOT', rootPath: dirPath, tree: treeData })
       if (lastFileContent !== null) {
         dispatch({ type: 'OPEN_FILE', filePath: lastFilePath, content: lastFileContent })
@@ -182,6 +188,7 @@ function FileExplorer() {
         if (!confirmed) return
         await window.electronAPI.deleteFile(targetPath)
       }
+      forgetEditorViews(targetPath)
       await refreshTree()
     } catch (err) {
       window.alert(String(err.message || err))
@@ -213,6 +220,7 @@ function FileExplorer() {
         const newPath = pathJoin(parentDir, name)
         console.log('Renaming:', targetPath, '->', newPath)
         await window.electronAPI.rename(targetPath, newPath)
+        relocateEditorViews(targetPath, newPath)
       }
       await refreshTree()
     } catch (err) {

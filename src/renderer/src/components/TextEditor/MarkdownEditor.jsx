@@ -22,6 +22,7 @@ import MarkdownToolbar from './MarkdownToolbar'
 import MarkdownImageView from './MarkdownImageView'
 import PlainTextEditor from './PlainTextEditor'
 import { RichSearch } from './richSearch.mjs'
+import { useFileViewport } from './useFileViewport'
 import styles from './TextEditor.module.css'
 
 const MarkdownImage = Image.extend({
@@ -32,6 +33,31 @@ const MarkdownImage = Image.extend({
     return ReactNodeViewRenderer(MarkdownImageView)
   }
 })
+
+function restoreMarkdownSelection(editor, start, end) {
+  if (!editor || editor.isDestroyed) return
+  const doc = editor.state.doc
+  const max = doc.content.size
+  const from = Math.min(Math.max(start, 0), max)
+  const to = Math.min(Math.max(end, 0), max)
+  let selection
+  try {
+    selection = TextSelection.create(doc, from, to)
+  } catch {
+    try {
+      selection = TextSelection.near(doc.resolve(Math.min(from, max)))
+    } catch {
+      return
+    }
+  }
+  const current = editor.state.selection
+  if (current.from === selection.from && current.to === selection.to) return
+  try {
+    editor.view.dispatch(editor.state.tr.setSelection(selection))
+  } catch {
+    // The view is not mounted yet; scroll restoration still applies.
+  }
+}
 
 function getHeadings(editor) {
   const headings = []
@@ -54,6 +80,9 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
   const [showSearch, setShowSearch] = useState(false)
   const [fallbackReason, setFallbackReason] = useState(null)
   const fallbackRef = useRef(null)
+  const containerRef = useRef(null)
+  const editorInstanceRef = useRef(null)
+  const viewportPersistRef = useRef(() => {})
   const [revision, bumpRevision] = useReducer((value) => value + 1, 0)
 
   const publishHeadings = useCallback((editor) => {
@@ -133,8 +162,50 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
       publishHeadings(updatedEditor)
       bumpRevision()
     },
-    onSelectionUpdate: () => bumpRevision()
+    onSelectionUpdate: () => {
+      bumpRevision()
+      viewportPersistRef.current()
+    }
   }, [currentFile])
+
+  editorInstanceRef.current = editor
+
+  const readViewport = useCallback(() => {
+    const element = containerRef.current
+    const instance = editorInstanceRef.current
+    if (!element || !instance || instance.isDestroyed) return null
+    const selection = instance.state.selection
+    return {
+      contentLength: instance.state.doc.content.size,
+      maxScrollTop: Math.max(0, element.scrollHeight - element.clientHeight),
+      maxScrollLeft: Math.max(0, element.scrollWidth - element.clientWidth),
+      scrollTop: element.scrollTop,
+      scrollLeft: element.scrollLeft,
+      selectionStart: selection.from,
+      selectionEnd: selection.to
+    }
+  }, [])
+
+  const applyViewport = useCallback((view) => {
+    const element = containerRef.current
+    const instance = editorInstanceRef.current
+    if (!element) return
+    if (view.restoreSelection) restoreMarkdownSelection(instance, view.selectionStart, view.selectionEnd)
+    element.scrollTop = view.scrollTop
+    element.scrollLeft = view.scrollLeft
+  }, [])
+
+  const { persist: persistViewport, pin: pinViewport } = useFileViewport({
+    filePath: currentFile,
+    mode: 'markdown',
+    enabled: Boolean(currentFile) && !fallbackReason,
+    layoutToken: fallbackReason ? 'fallback' : 'rich',
+    elementRef: containerRef,
+    contentSelector: '.ProseMirror',
+    readMetrics: readViewport,
+    applyView: applyViewport
+  })
+  viewportPersistRef.current = persistViewport
 
   const search = useRichSearchReplace(editor, revision)
 
@@ -149,8 +220,10 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
       const selection = TextSelection.near(editor.state.doc.resolve(heading.position + 1))
       editor.view.focus()
       editor.view.dispatch(editor.state.tr.setSelection(selection).scrollIntoView())
+      pinViewport()
+      requestAnimationFrame(() => pinViewport())
     }
-  }), [editor])
+  }), [editor, pinViewport])
 
   useEffect(() => {
     if (!currentFile || !isDirty || fallbackReason) return
@@ -197,13 +270,26 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
       {showSearch && (
         <SearchBar
           {...search}
-          onFindNext={search.findNext}
-          onReplace={search.replaceOne}
-          onReplaceAll={search.replaceAll}
+          onFindNext={() => {
+            search.findNext()
+            pinViewport()
+          }}
+          onReplace={() => {
+            search.replaceOne()
+            pinViewport()
+          }}
+          onReplaceAll={() => {
+            search.replaceAll()
+            pinViewport()
+          }}
           onClose={() => setShowSearch(false)}
         />
       )}
-      <div className={styles.richEditorContainer}>
+      <div
+        ref={containerRef}
+        className={styles.richEditorContainer}
+        onScroll={persistViewport}
+      >
         <EditorContent editor={editor} className={styles.richEditor} />
       </div>
     </div>

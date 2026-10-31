@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback, useState, useMemo, forwardRef, u
 import { useAppState, useAppDispatch } from '../../context/AppContext'
 import { useSearchReplace } from '../../hooks/useSearchReplace'
 import SearchBar from './SearchBar'
+import { useFileViewport } from './useFileViewport'
 import styles from './TextEditor.module.css'
 
 const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, ref) {
@@ -38,6 +39,44 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
       urlOverlayRef.current.scrollLeft = scrollLeft
     }
   }, [])
+
+  const readViewport = useCallback(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return null
+    return {
+      contentLength: textarea.value.length,
+      maxScrollTop: Math.max(0, textarea.scrollHeight - textarea.clientHeight),
+      maxScrollLeft: Math.max(0, textarea.scrollWidth - textarea.clientWidth),
+      scrollTop: textarea.scrollTop,
+      scrollLeft: textarea.scrollLeft,
+      selectionStart: textarea.selectionStart,
+      selectionEnd: textarea.selectionEnd
+    }
+  }, [])
+
+  const applyViewport = useCallback((view) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    if (view.restoreSelection) {
+      const length = textarea.value.length
+      const start = Math.min(view.selectionStart, length)
+      const end = Math.min(view.selectionEnd, length)
+      textarea.setSelectionRange(start, end)
+    }
+    textarea.scrollTop = view.scrollTop
+    textarea.scrollLeft = view.scrollLeft
+    syncScroll()
+  }, [syncScroll])
+
+  const { persist: persistViewport, pin: pinViewport, markGesture } = useFileViewport({
+    filePath: currentFile,
+    mode: 'plain',
+    enabled: Boolean(currentFile),
+    layoutToken: bottomPadding,
+    elementRef: textareaRef,
+    readMetrics: readViewport,
+    applyView: applyViewport
+  })
 
   const measureScrollTopForPosition = useCallback((textarea, text, position) => {
     const clampedPosition = Math.max(0, Math.min(position, text.length))
@@ -109,18 +148,21 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
       textarea.setSelectionRange(pos, pos)
       textarea.scrollTop = nextScrollTop
       syncScroll()
+      pinViewport()
       requestAnimationFrame(() => {
         if (!textareaRef.current) return
         textareaRef.current.scrollTop = nextScrollTop
         syncScroll()
+        pinViewport()
       })
       setTimeout(() => {
         if (!textareaRef.current) return
         textareaRef.current.scrollTop = nextScrollTop
         syncScroll()
+        pinViewport()
       }, 0)
     }
-  }), [content, syncScroll, measureScrollTopForPosition])
+  }), [content, syncScroll, measureScrollTopForPosition, pinViewport])
 
   useEffect(() => {
     const container = containerRef.current
@@ -238,10 +280,12 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
 
   const handleUrlWheel = useCallback((e) => {
     if (textareaRef.current) {
+      markGesture()
       textareaRef.current.scrollTop += e.deltaY
       syncScroll()
+      persistViewport()
     }
-  }, [syncScroll])
+  }, [markGesture, persistViewport, syncScroll])
 
   const urlOverlayContent = useMemo(() => {
     if (urlMatches.length === 0) return null
@@ -285,9 +329,11 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
         const visibleHeight = backdrop.clientHeight
         backdrop.scrollTop = markTop - visibleHeight / 2 + markHeight / 2
         textarea.scrollTop = backdrop.scrollTop
+        syncScroll()
+        pinViewport()
       }
     })
-  }, [])
+  }, [pinViewport, syncScroll])
 
   const handleFindNext = useCallback(() => {
     findNext()
@@ -382,7 +428,11 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
           value={content}
           onChange={handleChange}
           onInput={ensureCursorMargin}
-          onScroll={syncScroll}
+          onScroll={() => {
+            syncScroll()
+            persistViewport()
+          }}
+          onSelect={persistViewport}
           spellCheck={false}
         />
       </div>
