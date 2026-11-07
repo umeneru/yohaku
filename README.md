@@ -13,6 +13,7 @@ A minimal text editor.
 
 - Two-column layout (file explorer + text editor)
 - Auto-save (1-second debounce)
+- Scroll position and cursor are kept when switching files
 - Text search and replace (Ctrl+F)
 - Rich Markdown editing for `.md` / `.markdown` files
   - Formatting toolbar, GFM tables and task lists
