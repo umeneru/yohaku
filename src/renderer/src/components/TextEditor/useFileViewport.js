@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import {
+  classifyScrollChange,
   classifyViewportChange,
   getEditorView,
   getMountGeneration,
   isRestoredViewport,
+  mergeScrollPosition,
   resolveEditorView,
   saveEditorView
 } from './editorViewState.mjs'
@@ -20,7 +22,9 @@ function toView(mode, metrics) {
 
 // File switches remount the editor, so the viewport for each path lives outside
 // the component. Replaying the snapshot covers late layout (padding, markdown
-// parsing, images). Scroll and selection events are stored only after a user
+// parsing, images). Scroll events update the saved scroll offsets on their
+// own — scrolling without clicking or moving the caret is still a position
+// worth restoring — while selection changes are stored only after a user
 // gesture or an explicit pin, so a layout pass cannot overwrite the snapshot.
 export function useFileViewport({
   filePath,
@@ -42,6 +46,7 @@ export function useFileViewport({
   const userMovedRef = useRef(false)
   const gestureRef = useRef(false)
   const applyingRef = useRef(false)
+  const appliedScrollRef = useRef(null)
   const latestMetricsRef = useRef(null)
 
   if (generationRef.current === null) {
@@ -79,6 +84,35 @@ export function useFileViewport({
     if (isRestoredViewport(metrics, resolved)) gestureRef.current = false
   }, [enabled, filePath, mode, remember])
 
+  // Scroll-only handler: a scroll that never touches the caret (mouse wheel,
+  // scrollbar drag, touchpad) still has to be remembered. Unlike selection
+  // changes this is not gated on a preceding gesture; instead, the scroll
+  // event produced by restoring a snapshot is recognised via appliedScrollRef
+  // and dropped once.
+  const persistScroll = useCallback(() => {
+    if (!enabled || !filePath || applyingRef.current) return
+    const metrics = readRef.current()
+    if (!metrics) return
+    latestMetricsRef.current = metrics
+
+    const applied = appliedScrollRef.current
+    if (applied) {
+      appliedScrollRef.current = null
+      const sameAsApplied = Math.abs(metrics.scrollTop - applied.scrollTop) <= 1
+        && Math.abs(metrics.scrollLeft - applied.scrollLeft) <= 1
+      if (sameAsApplied) return
+    }
+
+    const action = classifyScrollChange({ saved: savedRef.current, metrics, mode })
+    if (action !== 'adopt') return
+    const view = mergeScrollPosition(savedRef.current, metrics, mode)
+    if (!view) return
+    savedRef.current = view
+    userMovedRef.current = true
+    gestureRef.current = false
+    saveEditorView(filePath, view, generationRef.current)
+  }, [enabled, filePath, mode])
+
   const pin = useCallback(() => {
     if (!enabled || !filePath) return
     gestureRef.current = true
@@ -98,6 +132,10 @@ export function useFileViewport({
     if (!metrics) return
     const resolved = resolveEditorView(saved, { ...metrics, mode })
     if (!resolved) return
+    appliedScrollRef.current = {
+      scrollTop: resolved.scrollTop,
+      scrollLeft: resolved.scrollLeft
+    }
     try {
       applyRef.current(resolved)
     } catch {
@@ -194,9 +232,15 @@ export function useFileViewport({
     return () => {
       const metrics = readRef.current() || latestMetricsRef.current
       if (!metrics || !userMovedRef.current) return
-      saveEditorView(filePath, toView(mode, metrics), generation)
+      // Take the final scroll offsets from the live surface, but keep the
+      // selection from the snapshot: an unmount after scrolling only must not
+      // re-derive the restore position from wherever the caret happens to be.
+      const view = savedRef.current
+        ? mergeScrollPosition(savedRef.current, metrics, mode)
+        : toView(mode, metrics)
+      if (view) saveEditorView(filePath, view, generation)
     }
   }, [enabled, filePath, mode])
 
-  return { persist, pin, markGesture }
+  return { persist, persistScroll, pin, markGesture }
 }

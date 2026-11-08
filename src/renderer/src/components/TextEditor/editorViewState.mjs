@@ -214,3 +214,42 @@ export function classifyViewportChange({ saved, metrics, mode }) {
   }
   return 'adopt'
 }
+
+// Scrolling alone (no click, no cursor move) must still update the saved
+// viewport. Selection is irrelevant here: only the scroll offsets decide
+// whether the change is adopted, so a scroll that leaves the caret untouched
+// is not mistaken for "nothing happened".
+export function classifyScrollChange({ saved, metrics, mode }) {
+  if (!metrics) return 'ignore'
+  if (!saved) return 'adopt'
+  const resolved = resolveEditorView(saved, { ...metrics, mode })
+  if (!resolved) return 'ignore'
+  const scrollSame = Math.abs(numberOrZero(metrics.scrollTop) - resolved.scrollTop) <= 1
+    && Math.abs(numberOrZero(metrics.scrollLeft) - resolved.scrollLeft) <= 1
+  if (scrollSame) return 'ignore'
+  if (
+    saved.scrollTop > 0
+    && metrics.maxScrollTop === 0
+    && metrics.scrollTop === 0
+    && metrics.contentLength > 0
+  ) {
+    return 'ignore'
+  }
+  return 'adopt'
+}
+
+// Builds the view to store after a scroll: the scroll offsets come from the
+// current metrics, while the selection is kept from the saved view (same
+// mode), because scrolling by itself does not move the caret.
+export function mergeScrollPosition(saved, metrics, mode) {
+  if (!metrics) return normalizeView(saved)
+  const normalizedSaved = normalizeView(saved)
+  const sameMode = normalizedSaved?.mode === mode
+  return normalizeView({
+    mode,
+    scrollTop: metrics.scrollTop,
+    scrollLeft: metrics.scrollLeft,
+    selectionStart: sameMode ? normalizedSaved.selectionStart : metrics.selectionStart,
+    selectionEnd: sameMode ? normalizedSaved.selectionEnd : metrics.selectionEnd
+  })
+}

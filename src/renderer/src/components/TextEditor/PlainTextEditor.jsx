@@ -68,7 +68,7 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
     syncScroll()
   }, [syncScroll])
 
-  const { persist: persistViewport, pin: pinViewport, markGesture } = useFileViewport({
+  const { persist: persistViewport, persistScroll: persistScrollViewport, pin: pinViewport } = useFileViewport({
     filePath: currentFile,
     mode: 'plain',
     enabled: Boolean(currentFile),
@@ -280,12 +280,11 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
 
   const handleUrlWheel = useCallback((e) => {
     if (textareaRef.current) {
-      markGesture()
       textareaRef.current.scrollTop += e.deltaY
       syncScroll()
-      persistViewport()
+      persistScrollViewport()
     }
-  }, [markGesture, persistViewport, syncScroll])
+  }, [persistScrollViewport, syncScroll])
 
   const urlOverlayContent = useMemo(() => {
     if (urlMatches.length === 0) return null
@@ -430,7 +429,7 @@ const PlainTextEditor = forwardRef(function PlainTextEditor({ warning = null }, 
           onInput={ensureCursorMargin}
           onScroll={() => {
             syncScroll()
-            persistViewport()
+            persistScrollViewport()
           }}
           onSelect={persistViewport}
           spellCheck={false}

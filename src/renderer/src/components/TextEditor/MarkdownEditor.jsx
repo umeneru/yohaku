@@ -195,7 +195,7 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
     element.scrollLeft = view.scrollLeft
   }, [])
 
-  const { persist: persistViewport, pin: pinViewport } = useFileViewport({
+  const { persist: persistViewport, persistScroll: persistScrollViewport, pin: pinViewport } = useFileViewport({
     filePath: currentFile,
     mode: 'markdown',
     enabled: Boolean(currentFile) && !fallbackReason,
@@ -288,7 +288,7 @@ const MarkdownEditor = forwardRef(function MarkdownEditor(props, ref) {
       <div
         ref={containerRef}
         className={styles.richEditorContainer}
-        onScroll={persistViewport}
+        onScroll={persistScrollViewport}
       >
         <EditorContent editor={editor} className={styles.richEditor} />
       </div>

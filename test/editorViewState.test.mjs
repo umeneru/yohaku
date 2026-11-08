@@ -1,11 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  classifyScrollChange,
   classifyViewportChange,
   forgetEditorViews,
   getEditorView,
   getMountGeneration,
   isRestoredViewport,
+  mergeScrollPosition,
   relocateEditorViews,
   resetEditorViewState,
   resolveEditorView,
@@ -93,6 +95,76 @@ test('カーソルだけ動いた場合は新しい位置を採用する', () =>
     selectionEnd: 10
   }
   assert.equal(classifyViewportChange({ saved: plainView, metrics, mode: 'plain' }), 'adopt')
+})
+
+test('スクロールだけの変更はカーソルが動いていなくても採用する', () => {
+  // ページを開いてクリックせずにスクロールだけした状態:
+  // カーソルは先頭のまま、スクロール位置だけが変わっている
+  const metrics = {
+    contentLength: 200,
+    maxScrollTop: 900,
+    maxScrollLeft: 40,
+    scrollTop: 640,
+    scrollLeft: 12,
+    selectionStart: 0,
+    selectionEnd: 0
+  }
+  assert.equal(classifyScrollChange({ saved: plainView, metrics, mode: 'plain' }), 'adopt')
+
+  // 保存時はスクロール位置を取り、選択範囲は保存済みのものを維持する
+  assert.deepEqual(mergeScrollPosition(plainView, metrics, 'plain'), {
+    mode: 'plain',
+    scrollTop: 640,
+    scrollLeft: 12,
+    selectionStart: 80,
+    selectionEnd: 90
+  })
+})
+
+test('スクロール位置が変わっていなければスクロール変更として扱わない', () => {
+  const metrics = {
+    contentLength: 200,
+    maxScrollTop: 500,
+    maxScrollLeft: 40,
+    scrollTop: 240,
+    scrollLeft: 12,
+    selectionStart: 0,
+    selectionEnd: 0
+  }
+  assert.equal(classifyScrollChange({ saved: plainView, metrics, mode: 'plain' }), 'ignore')
+})
+
+test('レイアウト前のスクロール0はスクロール変更として扱わない', () => {
+  const metrics = {
+    contentLength: 200,
+    maxScrollTop: 0,
+    maxScrollLeft: 0,
+    scrollTop: 0,
+    scrollLeft: 0,
+    selectionStart: 0,
+    selectionEnd: 0
+  }
+  assert.equal(classifyScrollChange({ saved: plainView, metrics, mode: 'plain' }), 'ignore')
+})
+
+test('未訪問ファイルのスクロールはそのまま採用する', () => {
+  const metrics = {
+    contentLength: 200,
+    maxScrollTop: 900,
+    maxScrollLeft: 0,
+    scrollTop: 300,
+    scrollLeft: 0,
+    selectionStart: 0,
+    selectionEnd: 0
+  }
+  assert.equal(classifyScrollChange({ saved: null, metrics, mode: 'plain' }), 'adopt')
+  assert.deepEqual(mergeScrollPosition(null, metrics, 'plain'), {
+    mode: 'plain',
+    scrollTop: 300,
+    scrollLeft: 0,
+    selectionStart: 0,
+    selectionEnd: 0
+  })
 })
 
 test('レイアウト前のスクロール0で保存位置を潰さない', () => {
